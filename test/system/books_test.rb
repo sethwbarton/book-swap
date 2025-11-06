@@ -21,5 +21,20 @@ class BooksTest < ApplicationSystemTestCase
     # After redirect, we're back at the new form
     assert_selector "h1", text: "Add a New Book"
   end
+
+  test "error messages are displayed when creating a book with invalid data" do
+    visit root_path
+    
+    # Try to submit form without filling in any fields
+    click_button "Create Book"
+    
+    # Verify error message container appears with correct styling
+    assert_selector ".bg-red-100.border-red-400.text-red-700"
+    # Verify error header text (pluralized)
+    assert_text "errors prohibited this book from being saved"
+    # Verify specific error messages for title and author
+    assert_text "Title can't be blank"
+    assert_text "Author can't be blank"
+  end
 end
 
