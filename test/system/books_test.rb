@@ -1,6 +1,10 @@
 require "application_system_test_case"
 
 class BooksTest < ApplicationSystemTestCase
+  def setup
+    login_as users(:one)
+  end
+
   test "visiting the new book page shows the new book form" do
     visit new_book_path
     
