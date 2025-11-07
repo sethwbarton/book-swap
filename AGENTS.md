@@ -27,3 +27,5 @@ You must always run the tests before implementing anything else and they must pa
 Every time you have a newly passing test, you must consider whether any of the code you wrote could be simplified or cleaned up. You should always be looking to delete production code that is no longer used. You must never delete test code without my permission.
 
 You can run the tests simply with `rails test:all`.
+
+Do not test anything related to styling. Styling needs to be able to change at any moment without breaking tests.
