@@ -9,6 +9,7 @@ class BooksController < ApplicationController
 
   def create
     @book = Book.new(book_params)
+    # @book.user = Current.user
 
     if @book.save
       redirect_to root_path, notice: "Book was successfully created."

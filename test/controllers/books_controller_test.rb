@@ -30,5 +30,16 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
     assert_select "li", text: "Title can't be blank"
     assert_select "li", text: "Author can't be blank"
   end
+
+  test "POST /books with valid data associates the book with the user" do
+    post books_path, params: { book: { title: "Foo", author: "Bar"} }
+    assert_response :success
+
+    new_book = Book.last
+    assert_not_nil new_book
+    assert_equal new_book.title, "Foo"
+    assert_equal new_book.author, "Bar"
+    assert_equal new_book.user, @user
+  end
 end
 
