@@ -32,7 +32,8 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "POST /books with valid data associates the book with the user" do
-    post books_path, params: { book: { title: "Foo", author: "Bar"} }
+    post books_path, params: { book: { title: "Foo", author: "Bar" } }
+    follow_redirect! if response.redirect?
     assert_response :success
 
     new_book = Book.last
@@ -41,5 +42,30 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
     assert_equal new_book.author, "Bar"
     assert_equal new_book.user, @user
   end
-end
 
+  test "GET /books only shows books associated with the user" do
+    login_as(users(:two))
+
+    post books_path, params: { book: { title: "A Shade Darker", author: "Simon Barr" } }
+    post books_path, params: { book: { title: "Purple Watermelon Man", author: "Joe Jackson" } }
+    post books_path, params: { book: { title: "Limp Ballon", author: "Stephanie Briggs" } }
+
+    login_as(users(:one))
+
+    post books_path, params: { book: { title: "The Only Book I Have", author: "Stephen King" } }
+    follow_redirect! if response.redirect?
+    assert_response :success
+
+    # Visit the books listing (show action) and assert only user's books appear
+    get root_path
+    assert_response :success
+
+    # User two's titles should not be present
+    assert_dom "p", { text: "A Shade Darker", count: 0 }
+    assert_dom "p", { text: "Purple Watermelon Man", count: 0 }
+    assert_dom "p", { text: "Limp Balloon", count: 0 }
+
+    # User one's title should be present
+    assert_select "p", { text: "The Only Book I Have", count: 1 }
+  end
+end

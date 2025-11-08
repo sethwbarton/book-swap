@@ -1,6 +1,6 @@
 class BooksController < ApplicationController
   def show
-    @books = Book.all
+    @books = Current.user.books
   end
 
   def new
@@ -9,7 +9,7 @@ class BooksController < ApplicationController
 
   def create
     @book = Book.new(book_params)
-    # @book.user = Current.user
+    @book.user = Current.user
 
     if @book.save
       redirect_to root_path, notice: "Book was successfully created."
@@ -24,4 +24,3 @@ class BooksController < ApplicationController
     params.require(:book).permit(:title, :author)
   end
 end
-
