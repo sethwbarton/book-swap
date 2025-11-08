@@ -1,0 +1,9 @@
+<% @users.each do |user| %>
+  <%= link_to user do %>
+    <div class="mb-4">
+      <p class="text-lg font-semibold"><%= user.username %></p>
+      <p class="text-gray-600"><%= user.email_address %></p>
+    </div>
+  <% end %>
+<% end %>
+

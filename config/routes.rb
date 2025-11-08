@@ -15,4 +15,6 @@ Rails.application.routes.draw do
   root "books#show"
   
   resources :books, only: [:show, :new, :create]
+  resources :users, only: [:index]
+  get "/users/:username" => "users#show", as: :user
 end
