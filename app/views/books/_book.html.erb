@@ -1,4 +1,7 @@
-<div class="mb-4 border-gray-300 border-2 rounded-sm p-2">
-  <p class="text-lg font-semibold"><%= book.title %></p>
-  <p class="text-gray-600"><%= book.author %></p>
+<div class="mb-4 border-gray-300 border-2 rounded-sm p-2 flex flex-row items-center justify-between hover:border-blue-500 hover:cursor-pointer">
+  <div>
+    <p class="text-lg font-semibold"><%= book.title %></p>
+    <p class="text-gray-600"><%= book.author %></p>
+  </div>
+  <p>$<%= book.price %></p>
 </div>
