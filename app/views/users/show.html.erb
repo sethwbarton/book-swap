@@ -1,3 +1,6 @@
   <div class="mb-4">
-    <p class="text-lg font-semibold"><%= @user.username %>'s Library</p>
+    <h1 class="text-5xl font-semibold"><%= @user.username %>'s Library</h1>
+    <% @user.books.each do |book|%>
+      <%= render partial: "books/book", locals: { book: book } %>
+    <% end %>
   </div>
