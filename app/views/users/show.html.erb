@@ -1,6 +1,6 @@
-  <div class="mb-4">
-    <h1 class="text-5xl font-semibold"><%= @user.username %>'s Library</h1>
-    <% @user.books.each do |book|%>
-      <%= render partial: "books/book", locals: { book: book } %>
-    <% end %>
-  </div>
+<div class="mb-4">
+  <h1 class="text-4xl font-semibold"><%= @user.username %>'s Library</h1>
+</div>
+<% @user.books.each do |book| %>
+  <%= render partial: "books/book", locals: { book: book } %>
+<% end %>
