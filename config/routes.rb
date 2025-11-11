@@ -19,6 +19,8 @@ Rails.application.routes.draw do
   resources :users, only: [ :index ] do
     scope module: :users do
       resource :stripe_connection, only: [ :create ]
+      get "/stripe_connection/return/:stripe_account_id", to: "stripe_connections#return"
+      get "/stripe_connection/refresh_link/:stripe_account_id", to: "stripe_connections#refresh_link"
     end
   end
   get "/users/:username" => "users#show", as: :user
