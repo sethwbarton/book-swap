@@ -4,9 +4,12 @@ module Users
 
     def create
       begin
+        @user = User.find(params[:user_id])
         account = Stripe::Account.create
 
         connected_account_id = account[:id]
+        @user.stripe_account_id = connected_account_id
+        @user.save
 
         account_link = Stripe::AccountLink.create({
                                                     account: connected_account_id,
