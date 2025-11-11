@@ -18,4 +18,5 @@ Rails.application.routes.draw do
   resources :books, only: [ :show, :new, :create ]
   resources :users, only: [ :index ]
   get "/users/:username" => "users#show", as: :user
+  get "stripe/account" => "stripe#create_account"
 end
