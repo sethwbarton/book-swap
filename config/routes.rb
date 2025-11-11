@@ -16,7 +16,10 @@ Rails.application.routes.draw do
 
   resources :purchases, only: [ :new ]
   resources :books, only: [ :show, :new, :create ]
-  resources :users, only: [ :index ]
+  resources :users, only: [ :index ] do
+    scope module: :users do
+      resource :stripe_connection, only: [ :create ]
+    end
+  end
   get "/users/:username" => "users#show", as: :user
-  get "stripe/account" => "stripe#create_account"
 end

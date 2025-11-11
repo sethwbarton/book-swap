@@ -9,10 +9,8 @@
       Browse Libraries
     </button>
   <% end %>
-  <%= link_to "/stripe/account" do %>
-    <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 cursor-pointer mb-6">
-      Create A Stripe Account to Start Selling Books
-    </button>
+  <%= button_to user_stripe_connection_path(Current.user), data: { turbo: false }, class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 cursor-pointer mb-6", method: :post do %>
+    Create A Stripe Account to Start Selling Books
   <% end %>
 </div>
 
