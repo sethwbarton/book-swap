@@ -1,4 +1,4 @@
-<div class="mb-4 border-gray-300 border-2 rounded-sm p-2 flex flex-row items-center justify-between hover:border-blue-500 hover:cursor-pointer">
+<%= link_to book_path(book), class: "mb-4 border-gray-300 border-2 rounded-sm p-2 flex flex-row items-center justify-between hover:border-blue-500 hover:cursor-pointer" do %>
   <div>
     <p class="text-lg font-semibold"><%= book.title %></p>
     <p class="text-gray-600"><%= book.author %></p>
@@ -7,4 +7,4 @@
     <p>Listed by <%= book.user.username %></p>
     <p>$<%= book.price %></p>
   </div>
-</div>
+<% end %>

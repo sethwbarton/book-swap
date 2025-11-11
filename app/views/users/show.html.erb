@@ -2,5 +2,5 @@
   <h1 class="text-4xl font-semibold"><%= @user.username %>'s Library</h1>
 </div>
 <% @user.books.each do |book| %>
-  <%= render partial: "books/book", locals: { book: book } %>
+  <%= render partial: "books/preview", locals: { book: book } %>
 <% end %>

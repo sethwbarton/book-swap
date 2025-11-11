@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_10_222934) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_11_042733) do
   create_table "books", force: :cascade do |t|
     t.string "title"
     t.string "author"
@@ -19,6 +19,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_10_222934) do
     t.integer "user_id", null: false
     t.decimal "price", precision: 14, scale: 2
     t.index ["user_id"], name: "index_books_on_user_id"
+  end
+
+  create_table "purchases", force: :cascade do |t|
+    t.integer "book_id", null: false
+    t.integer "buyer_id", null: false
+    t.integer "seller_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["book_id"], name: "index_purchases_on_book_id"
+    t.index ["buyer_id"], name: "index_purchases_on_buyer_id"
+    t.index ["seller_id"], name: "index_purchases_on_seller_id"
   end
 
   create_table "sessions", force: :cascade do |t|
@@ -40,5 +51,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_10_222934) do
   end
 
   add_foreign_key "books", "users"
+  add_foreign_key "purchases", "books"
+  add_foreign_key "purchases", "users", column: "buyer_id"
+  add_foreign_key "purchases", "users", column: "seller_id"
   add_foreign_key "sessions", "users"
 end

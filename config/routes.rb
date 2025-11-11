@@ -14,6 +14,7 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   root "books#index"
 
+  resources :purchases, only: [ :new ]
   resources :books, only: [ :show, :new, :create ]
   resources :users, only: [ :index ]
   get "/users/:username" => "users#show", as: :user
