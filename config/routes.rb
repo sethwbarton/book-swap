@@ -14,14 +14,14 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   root "books#index"
 
-  resources :purchases, only: [ :new ]
-  resources :books, only: [ :show, :new, :create ]
-  resources :users, only: [ :index ] do
-    scope module: :users do
+  scope module: :users do
+    resources :users, only: [ :index ] do
       resource :stripe_connection, only: [ :create ]
       get "/stripe_connection/return/:stripe_account_id", to: "stripe_connections#return"
       get "/stripe_connection/refresh_link/:stripe_account_id", to: "stripe_connections#refresh_link"
     end
+    get "/users/:username" => "users#show", as: :user
   end
-  get "/users/:username" => "users#show", as: :user
+  resources :purchases, only: [ :new ]
+  resources :books, only: [ :show, :new, :create ]
 end
