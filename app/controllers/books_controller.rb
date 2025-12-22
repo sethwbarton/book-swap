@@ -1,6 +1,6 @@
 class BooksController < ApplicationController
   def index
-    @books = Book.all
+    @books = Book.where.not(user_id: Current.user.id)
   end
 
   def new

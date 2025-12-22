@@ -5,6 +5,3 @@ class User < ApplicationRecord
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
 end
-
-
-# TODO: Want to list user's and their books that are for sale.
