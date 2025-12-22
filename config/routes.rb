@@ -23,5 +23,5 @@ Rails.application.routes.draw do
     get "/users/:username" => "users#show", as: :user
   end
   resources :purchases, only: [ :new ]
-  resources :books, only: [ :show, :new, :create ]
+  resources :books, only: [ :show, :new, :create, :index ]
 end
