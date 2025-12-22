@@ -1,0 +1,8 @@
+<nav>
+  <%= button_to "Log out", session_path, method: :delete if authenticated? %>
+  <% unless authenticated? %>
+    <%= link_to new_session_path do %>
+      <button>Log In</buttoN>
+    <% end %>
+  <% end %>
+</nav>
