@@ -18,7 +18,8 @@ class BooksTest < ApplicationSystemTestCase
     click_button "Create Book"
 
     # Should be redirected to the User's show page so they can see their listings
-    # ?
+    assert_current_path user_path("seller_one")
+    assert_text "seller_one's Library"
 
     # Assert that the book just created exists on the page
     assert_text "The Great Gatsby"

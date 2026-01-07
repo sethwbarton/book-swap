@@ -33,14 +33,21 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
 
   test "POST /books with valid data associates the book with the user" do
     post books_path, params: { book: { title: "Foo", author: "Bar", price: 12.99 } }
-    follow_redirect! if response.redirect?
+
+    # Should redirect to the user's library page
+    assert_redirected_to user_path(@user.username)
+    follow_redirect!
     assert_response :success
 
+    # Verify we're on the user's library page
+    assert_select "h1", text: "#{@user.username}'s Library"
+
+    # Verify the book was created and associated with the user
     new_book = Book.last
     assert_not_nil new_book
-    assert_equal new_book.title, "Foo"
-    assert_equal new_book.author, "Bar"
-    assert_equal new_book.user, @user
+    assert_equal "Foo", new_book.title
+    assert_equal "Bar", new_book.author
+    assert_equal @user, new_book.user
   end
 
   test "GET /books only shows books associated with the user" do
