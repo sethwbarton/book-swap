@@ -43,6 +43,7 @@
     
     <%= button_to "Set Up Payments", user_stripe_connection_path(Current.user), 
         method: :post,
+        data: { turbo: false },
         class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 cursor-pointer" %>
   </div>
 <% end %>
