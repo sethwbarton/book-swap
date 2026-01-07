@@ -2,7 +2,7 @@ require "test_helper"
 
 class BooksControllerTest < ActionDispatch::IntegrationTest
   setup do
-    @user = users(:one)
+    @user = users(:seller_one)
     login_as(@user)
   end
 
@@ -32,7 +32,7 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "POST /books with valid data associates the book with the user" do
-    post books_path, params: { book: { title: "Foo", author: "Bar" } }
+    post books_path, params: { book: { title: "Foo", author: "Bar", price: 12.99 } }
     follow_redirect! if response.redirect?
     assert_response :success
 
@@ -44,14 +44,14 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "GET /books only shows books associated with the user" do
-    user_one = users(:one)
-    Book.create!(title: "The Only Book I Have", author: "Bar", user_id: user_one.id)
+    user_one = users(:seller_one)
+    Book.create!(title: "The Only Book I Have", author: "Bar", user_id: user_one.id, price: 10.00)
 
-    user_two = users(:two)
-    Book.create!(title: "Bar 1", author: "Bar", user_id: user_two.id)
-    Book.create!(title: "Bar 2", author: "Bar", user_id: user_two.id)
+    user_two = users(:seller_two)
+    Book.create!(title: "Bar 1", author: "Bar", user_id: user_two.id, price: 15.00)
+    Book.create!(title: "Bar 2", author: "Bar", user_id: user_two.id, price: 20.00)
 
-    login_as(users(:one))
+    login_as(users(:seller_one))
 
     get root_path
     assert_response :success

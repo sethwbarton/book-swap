@@ -1,4 +1,4 @@
 <h1 class="text-2xl mb-2">New Listings</h1>
 <% @books.each do |book| %>
-  <%= render partial: "preview", locals: { book: book } %>
+  <%= render partial: "books/preview", locals: { book: book } %>
 <% end %>
