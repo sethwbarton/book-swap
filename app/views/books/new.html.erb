@@ -1,37 +1,48 @@
 <h1 class="text-3xl font-bold mb-6">Add a New Book</h1>
 
-<%= form_with model: @book, class: "space-y-4" do |form| %>
-  <% if @book.errors.any? %>
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-      <h2 class="font-bold"><%= pluralize(@book.errors.count, "error") %> prohibited this book from being saved:</h2>
-      <ul class="list-disc list-inside">
-        <% @book.errors.each do |error| %>
-          <li><%= error.full_message %></li>
-        <% end %>
-      </ul>
+<% if @stripe_connected %>
+  <%= form_with model: @book, class: "space-y-4" do |form| %>
+    <% if @book.errors.any? %>
+      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <h2 class="font-bold"><%= pluralize(@book.errors.count, "error") %> prohibited this book from being saved:</h2>
+        <ul class="list-disc list-inside">
+          <% @book.errors.each do |error| %>
+            <li><%= error.full_message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div>
+      <%= form.label :title, class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.text_field :title, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+    </div>
+
+    <div>
+      <%= form.label :author, class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.text_field :author, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+    </div>
+
+    <div>
+      <%= form.label :price, class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <span class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2
+      focus:ring-blue-500 focus:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
+        $ <%= form.number_field :price, step: ".01", class: "focus:outline-none" %>
+      </span>
+    </div>
+
+    <div>
+      <%= form.submit "Create Book", class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 cursor-pointer" %>
     </div>
   <% end %>
-
-  <div>
-    <%= form.label :title, class: "block text-sm font-medium text-gray-700 mb-1" %>
-    <%= form.text_field :title, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
-  </div>
-
-  <div>
-    <%= form.label :author, class: "block text-sm font-medium text-gray-700 mb-1" %>
-    <%= form.text_field :author, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
-  </div>
-
-  <div>
-    <%= form.label :price, class: "block text-sm font-medium text-gray-700 mb-1" %>
-    <span class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2
-    focus:ring-blue-500 focus:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
-      $ <%= form.number_field :price, step: ".01", class: "focus:outline-none" %>
-    </span>
-  </div>
-
-  <div>
-    <%= form.submit "Create Book", class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 cursor-pointer" %>
+<% else %>
+  <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+    <p class="text-gray-700 mb-4">
+      Before you can list books for sale, you need to connect your Stripe account to receive payments.
+    </p>
+    
+    <%= button_to "Set Up Payments", user_stripe_connection_path(Current.user), 
+        method: :post,
+        class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 cursor-pointer" %>
   </div>
 <% end %>
-

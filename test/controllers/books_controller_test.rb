@@ -68,4 +68,42 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
     assert_select "p", text: "Bar 2"
     assert_select "p", text: "The Only Book I Have"
   end
+
+  test "GET /books/new without Stripe account does not show book form" do
+    @user.update!(stripe_account_id: nil)  # Override fixture
+
+    get new_book_path
+    assert_response :success
+
+    # Form should NOT be present
+    assert_select "form[action='#{books_path}'][method='post']", count: 0
+    assert_select "input[name='book[title]']", count: 0
+  end
+
+  test "GET /books/new without Stripe account shows payment setup prompt" do
+    @user.update!(stripe_account_id: nil)  # Override fixture
+
+    get new_book_path
+    assert_response :success
+
+    # Should see message about needing Stripe
+    assert_select "p", text: /Before you can list books for sale/i
+
+    # Should see button to set up payments
+    assert_select "form[action='#{user_stripe_connection_path(@user)}'][method='post']" do
+      assert_select "button", text: "Set Up Payments"
+    end
+  end
+
+  test "POST /books without Stripe account is rejected" do
+    @user.update!(stripe_account_id: nil)  # Override fixture
+
+    post books_path, params: { book: { title: "Foo", author: "Bar", price: 12.99 } }
+
+    # Should redirect to new_book_path (not create the book)
+    assert_redirected_to new_book_path
+
+    # Verify book was NOT created
+    assert_equal 0, Book.where(title: "Foo").count
+  end
 end

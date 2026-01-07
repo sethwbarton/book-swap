@@ -4,11 +4,13 @@ seller_one:
   email_address: seller_one@example.com
   password_digest: <%= password_digest %>
   username: "seller_one"
+  stripe_account_id: "acct_test_seller_one_123"
 
 seller_two:
   email_address: seller_two@example.com
   password_digest: <%= password_digest %>
   username: "seller_two"
+  stripe_account_id: "acct_test_seller_two_456"
 
 buyer_one:
   email_address: buyer_one@example.com
