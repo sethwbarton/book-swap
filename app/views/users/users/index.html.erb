@@ -1,5 +1,5 @@
 <% @users.each do |user| %>
-  <%= link_to user do %>
+  <%= link_to user_path(user.username) do %>
     <div class="mb-4">
       <p class="text-lg font-semibold"><%= user.username %></p>
       <p class="text-gray-600"><%= user.email_address %></p>
