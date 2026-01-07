@@ -12,6 +12,11 @@ seller_two:
   username: "seller_two"
   stripe_account_id: "acct_1SgBSy9hJeDzdTJx"
 
+seller_no_stripe:
+  email_address: seller_no_stripe@example.com
+  password_digest: <%= password_digest %>
+  username: "seller_no_stripe"
+
 buyer_one:
   email_address: buyer_one@example.com
   password_digest: <%= password_digest %>
