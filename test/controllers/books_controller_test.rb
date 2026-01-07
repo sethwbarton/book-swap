@@ -50,7 +50,7 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
     assert_equal @user, new_book.user
   end
 
-  test "GET /books only shows books associated with the user" do
+  test "GET / shows all books from all users" do
     user_one = users(:seller_one)
     Book.create!(title: "The Only Book I Have", author: "Bar", user_id: user_one.id, price: 10.00)
 
@@ -63,8 +63,9 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
     get root_path
     assert_response :success
 
-    assert_dom "p", { text: "Bar 1", count: 0 }
-    assert_dom "p", { text: "Bar 2", count: 0 }
-    assert_select "p", { text: "The Only Book I Have", count: 1 }
+    # Should see all books from all users
+    assert_select "p", text: "Bar 1"
+    assert_select "p", text: "Bar 2"
+    assert_select "p", text: "The Only Book I Have"
   end
 end

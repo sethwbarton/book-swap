@@ -3,7 +3,7 @@ class UnauthController < ApplicationController
 
   def index
     if authenticated?
-      @books = Current.user.books
+      @books = Book.all
       render "books/index"
     else
       render "unauth/index"
