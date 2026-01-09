@@ -23,6 +23,36 @@ class BookTest < ActiveSupport::TestCase
     assert book.sold?
   end
 
+  test "available? returns false when book has pending purchase" do
+    book = books(:the_great_gatsby)
+    Purchase.create!(
+      book: book,
+      buyer: users(:buyer_one),
+      seller: book.user,
+      amount_cents: 1299,
+      platform_fee_cents: 130,
+      seller_amount_cents: 1169,
+      status: "pending"
+    )
+
+    assert_not book.available?
+  end
+
+  test "available? returns true when book has cancelled purchase" do
+    book = books(:the_great_gatsby)
+    Purchase.create!(
+      book: book,
+      buyer: users(:buyer_one),
+      seller: book.user,
+      amount_cents: 1299,
+      platform_fee_cents: 130,
+      seller_amount_cents: 1169,
+      status: "cancelled"
+    )
+
+    assert book.available?
+  end
+
   test "mark_as_sold! updates sold to true" do
     book = books(:the_great_gatsby)
 
@@ -49,6 +79,36 @@ class BookTest < ActiveSupport::TestCase
     assert_includes available_books, books(:the_great_gatsby)
     assert_includes available_books, books(:nineteen_eighty_four)
     assert_not_includes available_books, books(:to_kill_a_mockingbird)
+  end
+
+  test "scope available excludes books with pending purchases" do
+    book = books(:the_great_gatsby)
+    Purchase.create!(
+      book: book,
+      buyer: users(:buyer_one),
+      seller: book.user,
+      amount_cents: 1299,
+      platform_fee_cents: 130,
+      seller_amount_cents: 1169,
+      status: "pending"
+    )
+
+    assert_not_includes Book.available, book
+  end
+
+  test "scope available includes books with cancelled purchases" do
+    book = books(:the_great_gatsby)
+    Purchase.create!(
+      book: book,
+      buyer: users(:buyer_one),
+      seller: book.user,
+      amount_cents: 1299,
+      platform_fee_cents: 130,
+      seller_amount_cents: 1169,
+      status: "cancelled"
+    )
+
+    assert_includes Book.available, book
   end
 
   test "scope sold returns only sold books" do

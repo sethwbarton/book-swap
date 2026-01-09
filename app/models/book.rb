@@ -20,7 +20,7 @@ class Book < ApplicationRecord
   scope :sold, -> { where(sold: true) }
 
   def available?
-    !sold
+    !sold && !purchases.exists?(status: "pending")
   end
 
   def mark_as_sold!
