@@ -50,27 +50,34 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
     assert_equal @user, new_book.user
   end
 
-  test "GET / shows all books from all users" do
+  test "GET /books does not show books which are sold" do
     user_one = users(:seller_one)
-    Book.create!(title: "The Only Book I Have", author: "Bar", user_id: user_one.id, price: 10.00)
+    Book.create!(title: "Not Sold Book", author: "Bar", user_id: user_one.id, price: 10.00, sold: false)
+    Book.create!(title: "Sold Book", author: "Bar", user_id: user_one.id, price: 10.00, sold: true)
 
-    user_two = users(:seller_two)
-    Book.create!(title: "Bar 1", author: "Bar", user_id: user_two.id, price: 15.00)
-    Book.create!(title: "Bar 2", author: "Bar", user_id: user_two.id, price: 20.00)
+    login_as(user_one)
 
-    login_as(users(:seller_one))
+    get books_path
 
-    get root_path
-    assert_response :success
+    assert_select "p", text: "Not Sold Book"
+    assert_not_select "p", text: "Sold Book"
+  end
 
-    # Should see all books from all users
-    assert_select "p", text: "Bar 1"
-    assert_select "p", text: "Bar 2"
-    assert_select "p", text: "The Only Book I Have"
+  test "GET /books does not show books which have a pending purchase" do
+    seller = users(:seller_one)
+    buyer = users(:buyer_one)
+    Book.create!(id: 1, title: "Book", author: "Bar", user_id: seller.id, price: 10.00, sold: false)
+    Purchase.create!(book_id: 1, buyer: buyer, seller: seller, status: "pending", amount_cents: 1000, platform_fee_cents: 100, seller_amount_cents: 900)
+
+    login_as(seller)
+
+    get books_path
+
+    assert_not_select "p", text: "Book"
   end
 
   test "GET /books/new without Stripe account does not show book form" do
-    @user.update!(stripe_account_id: nil)  # Override fixture
+    @user.update!(stripe_account_id: nil) # Override fixture
 
     get new_book_path
     assert_response :success
@@ -81,7 +88,7 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "GET /books/new without Stripe account shows payment setup prompt" do
-    @user.update!(stripe_account_id: nil)  # Override fixture
+    @user.update!(stripe_account_id: nil) # Override fixture
 
     get new_book_path
     assert_response :success
@@ -96,7 +103,7 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "POST /books without Stripe account is rejected" do
-    @user.update!(stripe_account_id: nil)  # Override fixture
+    @user.update!(stripe_account_id: nil) # Override fixture
 
     post books_path, params: { book: { title: "Foo", author: "Bar", price: 12.99 } }
 

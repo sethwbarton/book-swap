@@ -2,7 +2,7 @@ class BooksController < ApplicationController
   before_action :require_stripe_connection, only: [ :new, :create ]
 
   def index
-    @books = Book.where.not(user_id: Current.user.id)
+    @books = Book.available
   end
 
   def new
