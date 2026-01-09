@@ -22,6 +22,11 @@ Rails.application.routes.draw do
     end
     get "/users/:username" => "users#show", as: :user
   end
-  resources :purchases, only: [ :new ]
-  resources :books, only: [ :show, :new, :create, :index ]
+
+  resources :books, only: [ :show, :new, :create, :index ] do
+    resources :purchases, only: [ :new, :create ]
+  end
+
+  # Webhook endpoint for Stripe (skip authentication)
+  post "/webhooks/stripe", to: "webhooks/stripe#create"
 end

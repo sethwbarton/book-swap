@@ -1,0 +1,39 @@
+<div class="max-w-2xl mx-auto p-6">
+  <h1 class="text-3xl font-bold mb-6">Confirm Your Purchase</h1>
+
+  <div class="bg-white shadow rounded-lg p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-4">Book Details</h2>
+
+    <div class="space-y-2">
+      <p><span class="font-medium">Title:</span> <%= @book.title %></p>
+      <p><span class="font-medium">Author:</span> <%= @book.author %></p>
+      <p class="text-2xl font-bold text-green-600 mt-4">
+        <%= number_to_currency(@book.price) %>
+      </p>
+    </div>
+  </div>
+
+  <div class="bg-white shadow rounded-lg p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-4">Seller Information</h2>
+    <p><span class="font-medium">Seller:</span> <%= @seller.email_address %></p>
+  </div>
+
+  <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+    <p class="text-sm text-blue-800">
+      You will be redirected to Stripe to complete your payment securely.
+      A 10% platform fee will be included in the transaction.
+    </p>
+  </div>
+
+  <div class="flex gap-4">
+    <%= button_to "Proceed to Payment",
+                  book_purchases_path(@book),
+                  method: :post,
+                  class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg flex-1",
+                  data: { turbo: false } %>
+
+    <%= link_to "Cancel",
+                book_path(@book),
+                class: "bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-6 rounded-lg text-center flex-1" %>
+  </div>
+</div>

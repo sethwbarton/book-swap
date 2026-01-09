@@ -8,4 +8,60 @@ class BookTest < ActiveSupport::TestCase
     assert_equal "The Great Gatsby", book.title
     assert_equal "F. Scott Fitzgerald", book.author
   end
+
+  test "available? returns true when not sold" do
+    book = books(:the_great_gatsby)
+
+    assert book.available?
+    assert_not book.sold?
+  end
+
+  test "available? returns false when sold" do
+    book = books(:to_kill_a_mockingbird)
+
+    assert_not book.available?
+    assert book.sold?
+  end
+
+  test "mark_as_sold! updates sold to true" do
+    book = books(:the_great_gatsby)
+
+    assert_not book.sold?
+
+    book.mark_as_sold!
+
+    assert book.reload.sold?
+  end
+
+  test "mark_as_available! updates sold to false" do
+    book = books(:to_kill_a_mockingbird)
+
+    assert book.sold?
+
+    book.mark_as_available!
+
+    assert_not book.reload.sold?
+  end
+
+  test "scope available returns only unsold books" do
+    available_books = Book.available
+
+    assert_includes available_books, books(:the_great_gatsby)
+    assert_includes available_books, books(:nineteen_eighty_four)
+    assert_not_includes available_books, books(:to_kill_a_mockingbird)
+  end
+
+  test "scope sold returns only sold books" do
+    sold_books = Book.sold
+
+    assert_includes sold_books, books(:to_kill_a_mockingbird)
+    assert_not_includes sold_books, books(:the_great_gatsby)
+    assert_not_includes sold_books, books(:nineteen_eighty_four)
+  end
+
+  test "has_many purchases association" do
+    book = books(:the_great_gatsby)
+
+    assert_respond_to book, :purchases
+  end
 end

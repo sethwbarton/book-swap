@@ -23,5 +23,8 @@ module BookSwap
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+
+    # Platform fee percentage for book sales
+    config.platform_fee_percentage = 10
   end
 end

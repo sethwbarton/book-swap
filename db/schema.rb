@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_11_191237) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_09_025808) do
   create_table "books", force: :cascade do |t|
     t.string "title"
     t.string "author"
@@ -18,6 +18,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_11_191237) do
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
     t.decimal "price", precision: 14, scale: 2
+    t.boolean "sold", default: false, null: false
+    t.index ["sold"], name: "index_books_on_sold"
     t.index ["user_id"], name: "index_books_on_user_id"
   end
 
@@ -27,9 +29,20 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_11_191237) do
     t.integer "seller_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "status", default: "pending", null: false
+    t.string "stripe_checkout_session_id"
+    t.string "stripe_payment_intent_id"
+    t.string "stripe_transfer_id"
+    t.integer "amount_cents", null: false
+    t.integer "platform_fee_cents", null: false
+    t.integer "seller_amount_cents", null: false
+    t.datetime "cancelled_at"
     t.index ["book_id"], name: "index_purchases_on_book_id"
     t.index ["buyer_id"], name: "index_purchases_on_buyer_id"
     t.index ["seller_id"], name: "index_purchases_on_seller_id"
+    t.index ["status"], name: "index_purchases_on_status"
+    t.index ["stripe_checkout_session_id"], name: "index_purchases_on_stripe_checkout_session_id"
+    t.index ["stripe_payment_intent_id"], name: "index_purchases_on_stripe_payment_intent_id"
   end
 
   create_table "sessions", force: :cascade do |t|
