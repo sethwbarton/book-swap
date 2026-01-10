@@ -20,7 +20,7 @@ gem "tailwindcss-rails"
 gem "jbuilder"
 
 # Stripe for payments processing and merchant connections
-gem "stripe", "9.1.0"
+gem "stripe", "18.1.0"
 
 # Google Cloud Vision for book cover/title page OCR
 gem "google-cloud-vision"
