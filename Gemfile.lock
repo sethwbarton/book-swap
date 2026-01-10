@@ -205,6 +205,8 @@ GEM
     herb (0.7.5-arm64-darwin)
     herb (0.7.5-x86_64-linux-gnu)
     herb (0.7.5-x86_64-linux-musl)
+    heroicon (1.0.0)
+      rails (>= 5.2)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
     importmap-rails (2.2.2)
@@ -498,6 +500,7 @@ DEPENDENCIES
   debug
   faraday
   google-cloud-vision
+  heroicon
   importmap-rails
   jbuilder
   kamal

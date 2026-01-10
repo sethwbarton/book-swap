@@ -28,6 +28,9 @@ gem "google-cloud-vision"
 # HTTP client for external API requests
 gem "faraday"
 
+# SVG icon library (Tailwind's official icons)
+gem "heroicon"
+
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 gem "bcrypt", "~> 3.1.7"
 

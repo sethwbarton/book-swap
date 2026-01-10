@@ -1,0 +1,31 @@
+<%# Step 2: Barcode Scanner %>
+<div data-book-scan-target="scannerStep" class="hidden">
+  <%= javascript_import_module_tag "quagga2" %>
+
+  <div class="mb-4 flex justify-between items-center">
+    <h2 class="text-xl font-semibold">Scan ISBN Barcode</h2>
+    <button type="button"
+            data-action="click->book-scan#backToMethodSelection"
+            class="text-gray-600 hover:text-gray-800">
+      &larr; Back
+    </button>
+  </div>
+
+  <div data-controller="barcode-scanner"
+       data-barcode-scanner-lookup-url-value="<%= book_lookups_isbn_path %>"
+       data-action="barcode-scanner:detected->book-scan#handleBarcodeDetected">
+
+    <div data-barcode-scanner-target="viewport"
+         class="bg-black rounded-lg overflow-hidden aspect-video mb-4">
+    </div>
+
+    <%= render "shared/loading_spinner", target: "barcode-scanner", message: "Looking up book..." %>
+    <%= render "shared/error_alert", target: "barcode-scanner" %>
+
+    <div data-barcode-scanner-target="result"></div>
+
+    <p class="text-sm text-gray-500 mt-4">
+      Point your camera at the barcode on the back of the book. The ISBN barcode is usually near the price.
+    </p>
+  </div>
+</div>

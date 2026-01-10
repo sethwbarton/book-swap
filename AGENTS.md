@@ -16,7 +16,9 @@ To get an idea of some of what we are considering building or have built check t
 - **Ruby Version:** 3.4.5
 - **Database:** SQLite
 - **Frontend:** Tailwind CSS, Hotwire (Turbo + Stimulus)
+- **Icons:** Heroicons (via `heroicon` gem)
 - **JavaScript:** Import maps (nobuild) - no npm/webpack for frontend dependencies
+- **HTTP Client:** Faraday (for external API requests)
 - **Payments:** Stripe Connect (10% platform fee)
 - **Testing:** Minitest, Capybara, Mocha
 - **Linting:** RuboCop (rubocop-rails-omakase)
@@ -211,3 +213,20 @@ test/
 - **Componentization:** Use partials and Ruby classes, not ViewComponent
 - **Forms:** Use Turbo by default; add `data: { turbo: false }` to disable
 - **Current user:** Access via `Current.user` (ActiveSupport::CurrentAttributes)
+
+### Icons (Heroicons)
+
+Use the `heroicon` gem for all icons. Do NOT use inline SVGs.
+
+```erb
+<%# Basic usage (outline variant is default) %>
+<%= heroicon "camera" %>
+
+<%# With custom classes %>
+<%= heroicon "qr-code", options: { class: "w-6 h-6 text-gray-500" } %>
+
+<%# Solid variant (filled icons) %>
+<%= heroicon "check-circle", variant: :solid, options: { class: "w-5 h-5 text-green-500" } %>
+```
+
+Browse available icons at: https://heroicons.com

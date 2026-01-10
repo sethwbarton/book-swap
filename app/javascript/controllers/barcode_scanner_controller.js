@@ -1,5 +1,5 @@
-import { Controller } from "@hotwired/stimulus"
-import "quagga2" // Ensures UMD script loads and attaches to window.Quagga
+import {Controller} from '@hotwired/stimulus';
+import 'quagga2';
 
 // Barcode scanner controller using quagga2 for ISBN detection
 // quagga2 is loaded as a UMD bundle and exposes window.Quagga
@@ -12,253 +12,265 @@ import "quagga2" // Ensures UMD script loads and attaches to window.Quagga
 //   <div data-barcode-scanner-target="error"></div>
 // </div>
 export default class extends Controller {
-  static targets = ["viewport", "result", "error", "loading"]
+  static targets = ['viewport', 'result', 'error', 'loading'];
   static values = {
     lookupUrl: String,
-    csrfToken: String
-  }
+    csrfToken: String,
+  };
 
   connect() {
-    this.isScanning = false
-    this.lastDetectedCode = null
+    this.isScanning = false;
+    this.lastDetectedCode = null;
 
     // Wait for Quagga to be available on window (UMD libraries may need a moment)
     this.waitForQuagga().then(() => {
-      this.Quagga = window.Quagga
-      this.initializeScanner()
+      this.Quagga = window.Quagga;
+      this.initializeScanner();
     }).catch(() => {
-      this.showError("Barcode scanner library not loaded. Please refresh the page.")
-    })
+      this.showError(
+        'Barcode scanner library not loaded. Please refresh the page.');
+    });
   }
 
   waitForQuagga(timeout = 5000) {
     return new Promise((resolve, reject) => {
       if (window.Quagga) {
-        resolve()
-        return
+        resolve();
+        return;
       }
 
-      const startTime = Date.now()
+      const startTime = Date.now();
       const interval = setInterval(() => {
         if (window.Quagga) {
-          clearInterval(interval)
-          resolve()
+          clearInterval(interval);
+          resolve();
         } else if (Date.now() - startTime > timeout) {
-          clearInterval(interval)
-          reject(new Error("Quagga failed to load"))
+          clearInterval(interval);
+          reject(new Error('Quagga failed to load'));
         }
-      }, 50)
-    })
+      }, 50);
+    });
   }
 
   disconnect() {
-    this.stopScanner()
+    this.stopScanner();
   }
 
   initializeScanner() {
     const config = {
       inputStream: {
-        name: "Live",
-        type: "LiveStream",
+        name: 'Live',
+        type: 'LiveStream',
         target: this.viewportTarget,
         constraints: {
-          facingMode: "environment", // Use back camera on mobile
-          aspectRatio: { min: 1, max: 2 },
-          width: { min: 640, ideal: 1280, max: 1920 },
-          height: { min: 480, ideal: 720, max: 1080 }
-        }
+          facingMode: 'environment', // Use back camera on mobile
+          aspectRatio: {min: 1, max: 2},
+          width: {min: 640, ideal: 1280, max: 1920},
+          height: {min: 480, ideal: 720, max: 1080},
+        },
       },
       locator: {
-        patchSize: "medium",
-        halfSample: true
+        patchSize: 'medium',
+        halfSample: true,
       },
       numOfWorkers: navigator.hardwareConcurrency || 4,
       decoder: {
         readers: [
-          "ean_reader",      // EAN-13 (ISBN-13)
-          "ean_8_reader",    // EAN-8
-          "upc_reader",      // UPC-A
-          "upc_e_reader"     // UPC-E
-        ]
+          'ean_reader',      // EAN-13 (ISBN-13)
+          'ean_8_reader',    // EAN-8
+          'upc_reader',      // UPC-A
+          'upc_e_reader',     // UPC-E
+        ],
       },
-      locate: true
-    }
+      locate: true,
+    };
 
     this.Quagga.init(config, (err) => {
       if (err) {
-        console.error("Quagga init error:", err)
-        this.showError("Could not access camera. Please ensure camera permissions are granted.")
-        return
+        console.error('Quagga init error:', err);
+        this.showError(
+          'Could not access camera. Please ensure camera permissions are granted.');
+        return;
       }
 
-      this.Quagga.start()
-      this.isScanning = true
-      this.setupDetectionHandler()
-    })
+      this.Quagga.start();
+      this.isScanning = true;
+      this.setupDetectionHandler();
+    });
   }
 
   setupDetectionHandler() {
     this.Quagga.onDetected((result) => {
-      if (!result || !result.codeResult) return
+      if (!result || !result.codeResult) return;
 
-      const code = result.codeResult.code
+      const code = result.codeResult.code;
 
       // Debounce: ignore if same code detected within 2 seconds
-      if (code === this.lastDetectedCode) return
+      if (code === this.lastDetectedCode) return;
 
       // Validate that it looks like an ISBN (10 or 13 digits)
-      if (!this.isValidIsbn(code)) return
+      if (!this.isValidIsbn(code)) return;
 
-      this.lastDetectedCode = code
+      this.lastDetectedCode = code;
 
       // Stop scanning and process the result
-      this.stopScanner()
-      this.lookupIsbn(code)
+      this.stopScanner();
+      this.lookupIsbn(code);
 
       // Reset after 2 seconds to allow rescanning
       setTimeout(() => {
-        this.lastDetectedCode = null
-      }, 2000)
-    })
+        this.lastDetectedCode = null;
+      }, 2000);
+    });
   }
 
   isValidIsbn(code) {
     // ISBN-13 starts with 978 or 979
     // ISBN-10 is 10 digits
-    const cleaned = code.replace(/[-\s]/g, "")
-    return (cleaned.length === 13 && (cleaned.startsWith("978") || cleaned.startsWith("979"))) ||
-           cleaned.length === 10
+    const cleaned = code.replace(/[-\s]/g, '');
+    return (cleaned.length === 13 &&
+        (cleaned.startsWith('978') || cleaned.startsWith('979'))) ||
+      cleaned.length === 10;
   }
 
   async lookupIsbn(isbn) {
-    this.showLoading()
-    this.clearError()
+    this.showLoading();
+    this.clearError();
 
     try {
       const response = await fetch(this.lookupUrlValue, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-Token": this.csrfTokenValue || this.getMetaCsrfToken(),
-          "Accept": "application/json"
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': this.csrfTokenValue || this.getMetaCsrfToken(),
+          'Accept': 'application/json',
         },
-        body: JSON.stringify({ isbn: isbn })
-      })
+        body: JSON.stringify({isbn: isbn}),
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (response.ok) {
-        this.showResult(data)
+        this.showResult(data);
       } else if (response.status === 404) {
-        this.showError(`No book found for ISBN: ${isbn}. Try manual entry.`)
-        this.restartScanner()
+        this.showError(`No book found for ISBN: ${isbn}. Try manual entry.`);
+        this.restartScanner();
       } else {
-        this.showError(data.message || "An error occurred. Please try again.")
-        this.restartScanner()
+        this.showError(data.message || 'An error occurred. Please try again.');
+        this.restartScanner();
       }
     } catch (error) {
-      console.error("ISBN lookup error:", error)
-      this.showError("Network error. Please check your connection and try again.")
-      this.restartScanner()
+      console.error('ISBN lookup error:', error);
+      this.showError(
+        'Network error. Please check your connection and try again.');
+      this.restartScanner();
     } finally {
-      this.hideLoading()
+      this.hideLoading();
     }
   }
 
   showResult(bookData) {
     // Dispatch custom event with book data for parent controllers to handle
-    this.dispatch("detected", {
+    this.dispatch('detected', {
       detail: {
         book: bookData,
         duplicate: bookData.duplicate || false,
-        existingBookId: bookData.existing_book_id
-      }
-    })
+        existingBookId: bookData.existing_book_id,
+      },
+    });
 
     // Also update result target if present
     if (this.hasResultTarget) {
-      this.resultTarget.innerHTML = this.renderBookPreview(bookData)
+      this.resultTarget.innerHTML = this.renderBookPreview(bookData);
     }
   }
 
   renderBookPreview(book) {
     const duplicateWarning = book.duplicate
       ? `<p class="text-amber-600 font-medium">${book.duplicate_message}</p>`
-      : ""
+      : '';
 
     return `
       <div class="bg-white rounded-lg shadow p-4">
         ${duplicateWarning}
         <div class="flex gap-4">
-          ${book.cover_image_url ? `<img src="${book.cover_image_url}" alt="Book cover" class="w-24 h-auto rounded">` : ""}
+          ${book.cover_image_url ?
+      `<img src="${book.cover_image_url}" alt="Book cover" class="w-24 h-auto rounded">` :
+      ''}
           <div>
             <h3 class="font-bold text-lg">${this.escapeHtml(book.title)}</h3>
-            <p class="text-gray-600">${this.escapeHtml(book.author || "Unknown Author")}</p>
-            ${book.publisher ? `<p class="text-sm text-gray-500">${this.escapeHtml(book.publisher)}</p>` : ""}
-            ${book.publication_year ? `<p class="text-sm text-gray-500">${book.publication_year}</p>` : ""}
+            <p class="text-gray-600">${this.escapeHtml(
+      book.author || 'Unknown Author')}</p>
+            ${book.publisher ?
+      `<p class="text-sm text-gray-500">${this.escapeHtml(
+        book.publisher)}</p>` :
+      ''}
+            ${book.publication_year ?
+      `<p class="text-sm text-gray-500">${book.publication_year}</p>` :
+      ''}
           </div>
         </div>
       </div>
-    `
+    `;
   }
 
   showError(message) {
     if (this.hasErrorTarget) {
-      this.errorTarget.textContent = message
-      this.errorTarget.classList.remove("hidden")
+      this.errorTarget.textContent = message;
+      this.errorTarget.classList.remove('hidden');
     }
   }
 
   clearError() {
     if (this.hasErrorTarget) {
-      this.errorTarget.textContent = ""
-      this.errorTarget.classList.add("hidden")
+      this.errorTarget.textContent = '';
+      this.errorTarget.classList.add('hidden');
     }
   }
 
   showLoading() {
     if (this.hasLoadingTarget) {
-      this.loadingTarget.classList.remove("hidden")
+      this.loadingTarget.classList.remove('hidden');
     }
   }
 
   hideLoading() {
     if (this.hasLoadingTarget) {
-      this.loadingTarget.classList.add("hidden")
+      this.loadingTarget.classList.add('hidden');
     }
   }
 
   stopScanner() {
     if (this.isScanning && this.Quagga) {
-      this.Quagga.stop()
-      this.isScanning = false
+      this.Quagga.stop();
+      this.isScanning = false;
     }
   }
 
   restartScanner() {
     if (!this.isScanning) {
-      this.initializeScanner()
+      this.initializeScanner();
     }
   }
 
   // Action to manually restart scanning
   restart() {
-    this.clearError()
+    this.clearError();
     if (this.hasResultTarget) {
-      this.resultTarget.innerHTML = ""
+      this.resultTarget.innerHTML = '';
     }
-    this.restartScanner()
+    this.restartScanner();
   }
 
   getMetaCsrfToken() {
-    const meta = document.querySelector('meta[name="csrf-token"]')
-    return meta ? meta.getAttribute("content") : ""
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute('content') : '';
   }
 
   escapeHtml(text) {
-    if (!text) return ""
-    const div = document.createElement("div")
-    div.textContent = text
-    return div.innerHTML
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 }

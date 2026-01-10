@@ -1,0 +1,32 @@
+<%# Step 1: Choose identification method %>
+<div data-book-scan-target="methodStep" class="space-y-6">
+  <p class="text-gray-600">How would you like to add your book?</p>
+  
+  <div class="grid gap-4 md:grid-cols-2">
+    <%# Barcode Scanner Option %>
+    <button type="button"
+            data-action="click->book-scan#startBarcodeScanner"
+            class="flex flex-col items-center p-6 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors">
+      <%= heroicon "qr-code", options: { class: "w-12 h-12 text-gray-600 mb-3" } %>
+      <span class="font-medium text-gray-900">Scan Barcode</span>
+      <span class="text-sm text-gray-500 mt-1">Use your camera to scan the ISBN barcode</span>
+    </button>
+
+    <%# Photo Option %>
+    <button type="button"
+            data-action="click->book-scan#startPhotoCapture"
+            class="flex flex-col items-center p-6 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors">
+      <%= heroicon "camera", options: { class: "w-12 h-12 text-gray-600 mb-3" } %>
+      <span class="font-medium text-gray-900">Take Photo</span>
+      <span class="text-sm text-gray-500 mt-1">Take a photo of the cover or title page</span>
+    </button>
+  </div>
+
+  <div class="text-center">
+    <button type="button"
+            data-action="click->book-scan#showManualEntry"
+            class="text-blue-600 hover:text-blue-800 underline">
+      Enter book details manually
+    </button>
+  </div>
+</div>
