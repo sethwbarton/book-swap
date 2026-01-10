@@ -1,0 +1,317 @@
+<h1 class="text-3xl font-bold mb-6">Add a Book</h1>
+
+<% if @stripe_connected %>
+  <div data-controller="book-scan"
+       data-book-scan-isbn-lookup-url-value="<%= book_lookups_isbn_path %>"
+       data-book-scan-image-lookup-url-value="<%= book_lookups_image_path %>"
+       data-book-scan-create-url-value="<%= books_path %>">
+
+    <%# Step 1: Choose identification method %>
+    <div data-book-scan-target="methodStep" class="space-y-6">
+      <p class="text-gray-600">How would you like to add your book?</p>
+      
+      <div class="grid gap-4 md:grid-cols-2">
+        <%# Barcode Scanner Option %>
+        <button type="button"
+                data-action="click->book-scan#startBarcodeScanner"
+                class="flex flex-col items-center p-6 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors">
+          <svg class="w-12 h-12 text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+          </svg>
+          <span class="font-medium text-gray-900">Scan Barcode</span>
+          <span class="text-sm text-gray-500 mt-1">Use your camera to scan the ISBN barcode</span>
+        </button>
+
+        <%# Photo Option %>
+        <button type="button"
+                data-action="click->book-scan#startPhotoCapture"
+                class="flex flex-col items-center p-6 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors">
+          <svg class="w-12 h-12 text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+          <span class="font-medium text-gray-900">Take Photo</span>
+          <span class="text-sm text-gray-500 mt-1">Take a photo of the cover or title page</span>
+        </button>
+      </div>
+
+      <div class="text-center">
+        <button type="button"
+                data-action="click->book-scan#showManualEntry"
+                class="text-blue-600 hover:text-blue-800 underline">
+          Enter book details manually
+        </button>
+      </div>
+    </div>
+
+    <%# Step 2: Barcode Scanner %>
+    <div data-book-scan-target="scannerStep" class="hidden">
+      <%= javascript_import_module_tag "quagga2" %>
+      
+      <div class="mb-4 flex justify-between items-center">
+        <h2 class="text-xl font-semibold">Scan ISBN Barcode</h2>
+        <button type="button"
+                data-action="click->book-scan#backToMethodSelection"
+                class="text-gray-600 hover:text-gray-800">
+          &larr; Back
+        </button>
+      </div>
+
+      <div data-controller="barcode-scanner"
+           data-barcode-scanner-lookup-url-value="<%= book_lookups_isbn_path %>"
+           data-action="barcode-scanner:detected->book-scan#handleBarcodeDetected">
+        
+        <div data-barcode-scanner-target="viewport"
+             class="bg-black rounded-lg overflow-hidden aspect-video mb-4">
+        </div>
+
+        <div data-barcode-scanner-target="loading" class="hidden text-center py-4">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <p class="mt-2 text-gray-600">Looking up book...</p>
+        </div>
+
+        <div data-barcode-scanner-target="error" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        </div>
+
+        <div data-barcode-scanner-target="result"></div>
+
+        <p class="text-sm text-gray-500 mt-4">
+          Point your camera at the barcode on the back of the book. The ISBN barcode is usually near the price.
+        </p>
+      </div>
+    </div>
+
+    <%# Step 3: Photo Capture %>
+    <div data-book-scan-target="photoStep" class="hidden">
+      <div class="mb-4 flex justify-between items-center">
+        <h2 class="text-xl font-semibold">Take a Photo</h2>
+        <button type="button"
+                data-action="click->book-scan#backToMethodSelection"
+                class="text-gray-600 hover:text-gray-800">
+          &larr; Back
+        </button>
+      </div>
+
+      <div data-controller="book-photo"
+           data-book-photo-mode-value="identify"
+           data-book-photo-upload-url-value="<%= book_lookups_image_path %>"
+           data-action="book-photo:identified->book-scan#handlePhotoIdentified book-photo:selected->book-scan#handleMatchSelected">
+        
+        <video data-book-photo-target="video"
+               autoplay
+               playsinline
+               class="w-full rounded-lg bg-black aspect-video mb-4">
+        </video>
+        
+        <canvas data-book-photo-target="canvas" class="hidden"></canvas>
+        
+        <input type="file"
+               accept="image/*"
+               capture="environment"
+               data-book-photo-target="fileInput"
+               data-action="change->book-photo#handleFileSelect"
+               class="hidden">
+
+        <div class="flex gap-3 mb-4">
+          <button type="button"
+                  data-action="click->book-photo#capture"
+                  class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+            Capture Photo
+          </button>
+          <button type="button"
+                  data-action="click->book-photo#selectFromGallery"
+                  class="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            Choose from Gallery
+          </button>
+        </div>
+
+        <div data-book-photo-target="loading" class="hidden text-center py-4">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <p class="mt-2 text-gray-600">Identifying book...</p>
+        </div>
+
+        <div data-book-photo-target="error" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        </div>
+
+        <div data-book-photo-target="result"></div>
+
+        <p class="text-sm text-gray-500 mt-4">
+          Take a clear photo of the book's cover or title page. Good lighting helps!
+        </p>
+      </div>
+    </div>
+
+    <%# Step 4: Confirm & Price %>
+    <div data-book-scan-target="confirmStep" class="hidden">
+      <div class="mb-4 flex justify-between items-center">
+        <h2 class="text-xl font-semibold">Confirm Book Details</h2>
+        <button type="button"
+                data-action="click->book-scan#backToMethodSelection"
+                class="text-gray-600 hover:text-gray-800">
+          &larr; Start Over
+        </button>
+      </div>
+
+      <%# Duplicate Warning %>
+      <div data-book-scan-target="duplicateWarning" class="hidden bg-amber-100 border border-amber-400 text-amber-800 px-4 py-3 rounded mb-4">
+        <p class="font-medium">You already have this book listed.</p>
+        <p class="text-sm">You can still list another copy if you have multiple.</p>
+      </div>
+
+      <%= form_with model: @book, url: books_path, class: "space-y-4", data: { book_scan_target: "form" } do |form| %>
+        <%# Hidden fields for scanned data %>
+        <%= form.hidden_field :isbn_10, data: { book_scan_target: "isbn10Field" } %>
+        <%= form.hidden_field :isbn_13, data: { book_scan_target: "isbn13Field" } %>
+        <%= form.hidden_field :cover_image_url, data: { book_scan_target: "coverUrlField" } %>
+        <%= form.hidden_field :publisher, data: { book_scan_target: "publisherField" } %>
+        <%= form.hidden_field :publication_year, data: { book_scan_target: "publicationYearField" } %>
+        <%= form.hidden_field :page_count, data: { book_scan_target: "pageCountField" } %>
+        <%= form.hidden_field :identified_by, data: { book_scan_target: "identifiedByField" } %>
+
+        <%# Book Preview %>
+        <div class="flex gap-4 p-4 bg-gray-50 rounded-lg" data-book-scan-target="bookPreview">
+          <img data-book-scan-target="coverImage"
+               src=""
+               alt="Book cover"
+               class="w-24 h-auto rounded shadow hidden">
+          <div class="flex-1">
+            <p class="font-bold text-lg" data-book-scan-target="previewTitle"></p>
+            <p class="text-gray-600" data-book-scan-target="previewAuthor"></p>
+            <p class="text-sm text-gray-500" data-book-scan-target="previewPublisher"></p>
+          </div>
+        </div>
+
+        <%# Editable Fields %>
+        <div>
+          <%= form.label :title, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_field :title, required: true, data: { book_scan_target: "titleField" }, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+        </div>
+
+        <div>
+          <%= form.label :author, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_field :author, required: true, data: { book_scan_target: "authorField" }, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+        </div>
+
+        <div>
+          <%= form.label :description, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_area :description, rows: 3, data: { book_scan_target: "descriptionField" }, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+        </div>
+
+        <div>
+          <%= form.label :price, "Your Price", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <div class="flex items-center">
+            <span class="text-gray-500 mr-2">$</span>
+            <%= form.number_field :price, step: "0.01", min: "0.01", required: true, class: "w-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+          </div>
+        </div>
+
+        <%# Condition Photos Section %>
+        <details class="border border-gray-200 rounded-lg">
+          <summary class="px-4 py-3 cursor-pointer font-medium text-gray-700 hover:bg-gray-50">
+            Add Condition Photos (Optional)
+          </summary>
+          <div class="p-4 border-t border-gray-200">
+            <div data-controller="book-photo"
+                 data-book-photo-mode-value="condition"
+                 data-book-photo-max-photos-value="5">
+              
+              <div class="flex gap-3 mb-4">
+                <button type="button"
+                        data-action="click->book-photo#startCamera"
+                        class="flex-1 py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                  Take Photo
+                </button>
+                <button type="button"
+                        data-action="click->book-photo#selectFromGallery"
+                        class="flex-1 py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                  Choose File
+                </button>
+              </div>
+
+              <video data-book-photo-target="video" autoplay playsinline class="hidden w-full rounded-lg mb-2"></video>
+              <canvas data-book-photo-target="canvas" class="hidden"></canvas>
+              
+              <input type="file"
+                     accept="image/*"
+                     multiple
+                     name="book[condition_photos][]"
+                     data-book-photo-target="fileInput"
+                     data-action="change->book-photo#handleFileSelect"
+                     class="hidden">
+
+              <div data-book-photo-target="capturedPhotos" class="mt-3"></div>
+
+              <p class="text-xs text-gray-500 mt-2">
+                Add photos showing the book's actual condition (cover, spine, any damage). Max 5 photos.
+              </p>
+            </div>
+          </div>
+        </details>
+
+        <div class="pt-4">
+          <%= form.submit "List Book for Sale", class: "w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors cursor-pointer" %>
+        </div>
+      <% end %>
+    </div>
+
+    <%# Manual Entry Form %>
+    <div data-book-scan-target="manualStep" class="hidden">
+      <div class="mb-4 flex justify-between items-center">
+        <h2 class="text-xl font-semibold">Enter Book Details</h2>
+        <button type="button"
+                data-action="click->book-scan#backToMethodSelection"
+                class="text-gray-600 hover:text-gray-800">
+          &larr; Back
+        </button>
+      </div>
+
+      <%= form_with model: @book, url: books_path, class: "space-y-4" do |form| %>
+        <%= form.hidden_field :identified_by, value: "manual" %>
+
+        <div>
+          <%= form.label :title, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_field :title, required: true, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+        </div>
+
+        <div>
+          <%= form.label :author, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_field :author, required: true, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+        </div>
+
+        <div>
+          <%= form.label :isbn_13, "ISBN (optional)", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_field :isbn_13, placeholder: "978-0-00-000000-0", class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+        </div>
+
+        <div>
+          <%= form.label :description, class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <%= form.text_area :description, rows: 3, class: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+        </div>
+
+        <div>
+          <%= form.label :price, "Your Price", class: "block text-sm font-medium text-gray-700 mb-1" %>
+          <div class="flex items-center">
+            <span class="text-gray-500 mr-2">$</span>
+            <%= form.number_field :price, step: "0.01", min: "0.01", required: true, class: "w-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+          </div>
+        </div>
+
+        <div class="pt-4">
+          <%= form.submit "List Book for Sale", class: "w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors cursor-pointer" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+<% else %>
+  <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+    <p class="text-gray-700 mb-4">
+      Before you can list books for sale, you need to connect your Stripe account to receive payments.
+    </p>
+    
+    <%= button_to "Set Up Payments", user_stripe_connection_path(Current.user), 
+        method: :post,
+        data: { turbo: false },
+        class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 cursor-pointer" %>
+  </div>
+<% end %>

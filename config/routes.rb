@@ -25,7 +25,14 @@ Rails.application.routes.draw do
 
   resources :books, only: [ :show, :new, :create, :index ] do
     resources :purchases, only: [ :new, :create ]
+    collection do
+      get :scan
+    end
   end
+
+  # Book lookup endpoints for scanning feature
+  post "/book_lookups/isbn", to: "book_lookups#isbn", as: :book_lookups_isbn
+  post "/book_lookups/image", to: "book_lookups#image", as: :book_lookups_image
 
   # Webhook endpoint for Stripe (skip authentication)
   post "/webhooks/stripe", to: "webhooks/stripe#create"

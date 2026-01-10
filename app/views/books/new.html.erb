@@ -1,6 +1,15 @@
 <h1 class="text-3xl font-bold mb-6">Add a New Book</h1>
 
 <% if @stripe_connected %>
+  <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+    <p class="text-gray-700 mb-3">
+      <strong>New!</strong> Quickly add books by scanning their barcode or taking a photo.
+    </p>
+    <%= link_to "Scan a Book", scan_books_path, class: "inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors" %>
+  </div>
+
+  <p class="text-gray-600 mb-4">Or enter the book details manually:</p>
+
   <%= form_with model: @book, class: "space-y-4" do |form| %>
     <% if @book.errors.any? %>
       <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">

@@ -149,4 +149,106 @@ class BookTest < ActiveSupport::TestCase
 
     assert_respond_to book, :purchases
   end
+
+  # Duplicate detection tests
+  test "duplicate_for_user? returns true when user has book with same ISBN-13" do
+    user = users(:seller_one)
+    Book.create!(
+      title: "Test Book",
+      author: "Test Author",
+      price: 10.00,
+      user: user,
+      isbn_13: "9780061120084"
+    )
+
+    assert Book.duplicate_for_user?(user, isbn_13: "9780061120084")
+  end
+
+  test "duplicate_for_user? returns true when user has book with same ISBN-10" do
+    user = users(:seller_one)
+    Book.create!(
+      title: "Test Book",
+      author: "Test Author",
+      price: 10.00,
+      user: user,
+      isbn_10: "0061120081"
+    )
+
+    assert Book.duplicate_for_user?(user, isbn_10: "0061120081")
+  end
+
+  test "duplicate_for_user? returns true when matching either ISBN" do
+    user = users(:seller_one)
+    Book.create!(
+      title: "Test Book",
+      author: "Test Author",
+      price: 10.00,
+      user: user,
+      isbn_10: "0061120081",
+      isbn_13: "9780061120084"
+    )
+
+    # Match by ISBN-10
+    assert Book.duplicate_for_user?(user, isbn_10: "0061120081")
+    # Match by ISBN-13
+    assert Book.duplicate_for_user?(user, isbn_13: "9780061120084")
+    # Match by either
+    assert Book.duplicate_for_user?(user, isbn_10: "0061120081", isbn_13: "9780061120084")
+  end
+
+  test "duplicate_for_user? returns false when user has no matching ISBN" do
+    user = users(:seller_one)
+
+    assert_not Book.duplicate_for_user?(user, isbn_13: "9780061120084")
+  end
+
+  test "duplicate_for_user? returns false when different user has the ISBN" do
+    other_user = users(:seller_two)
+    Book.create!(
+      title: "Test Book",
+      author: "Test Author",
+      price: 10.00,
+      user: other_user,
+      isbn_13: "9780061120084"
+    )
+
+    user = users(:seller_one)
+    assert_not Book.duplicate_for_user?(user, isbn_13: "9780061120084")
+  end
+
+  test "duplicate_for_user? returns false when no ISBNs provided" do
+    user = users(:seller_one)
+
+    assert_not Book.duplicate_for_user?(user, isbn_10: nil, isbn_13: nil)
+  end
+
+  test "find_duplicate_for_user returns the existing book" do
+    user = users(:seller_one)
+    existing_book = Book.create!(
+      title: "Test Book",
+      author: "Test Author",
+      price: 10.00,
+      user: user,
+      isbn_13: "9780061120084"
+    )
+
+    found = Book.find_duplicate_for_user(user, isbn_13: "9780061120084")
+
+    assert_equal existing_book, found
+  end
+
+  test "find_duplicate_for_user returns nil when no duplicate" do
+    user = users(:seller_one)
+
+    found = Book.find_duplicate_for_user(user, isbn_13: "9780061120084")
+
+    assert_nil found
+  end
+
+  test "can attach condition photos" do
+    book = books(:the_great_gatsby)
+
+    assert_respond_to book, :condition_photos
+    assert_equal 0, book.condition_photos.count
+  end
 end

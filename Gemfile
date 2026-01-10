@@ -22,6 +22,9 @@ gem "jbuilder"
 # Stripe for payments processing and merchant connections
 gem "stripe", "9.1.0"
 
+# Google Cloud Vision for book cover/title page OCR
+gem "google-cloud-vision"
+
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 gem "bcrypt", "~> 3.1.7"
 

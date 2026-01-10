@@ -113,4 +113,53 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
     # Verify book was NOT created
     assert_equal 0, Book.where(title: "Foo").count
   end
+
+  # Scan action tests
+  test "GET /books/scan renders the scanning interface" do
+    get scan_books_path
+    assert_response :success
+
+    assert_select "h1", text: "Add a Book"
+    # Should show method selection options
+    assert_select "button", text: /Scan Barcode/
+    assert_select "button", text: /Take Photo/
+  end
+
+  test "GET /books/scan without Stripe account shows payment setup prompt" do
+    @user.update!(stripe_account_id: nil)
+
+    get scan_books_path
+    assert_response :success
+
+    assert_select "p", text: /Before you can list books for sale/i
+  end
+
+  test "POST /books with scanned book data creates book with all fields" do
+    post books_path, params: {
+      book: {
+        title: "To Kill a Mockingbird",
+        author: "Harper Lee",
+        price: 12.99,
+        isbn_10: "0061120081",
+        isbn_13: "9780061120084",
+        description: "The unforgettable novel",
+        cover_image_url: "https://covers.openlibrary.org/b/isbn/9780061120084-L.jpg",
+        publisher: "Harper Perennial",
+        publication_year: 2006,
+        page_count: 336,
+        identified_by: "isbn"
+      }
+    }
+
+    assert_redirected_to user_path(@user.username)
+
+    book = Book.last
+    assert_equal "To Kill a Mockingbird", book.title
+    assert_equal "Harper Lee", book.author
+    assert_equal "0061120081", book.isbn_10
+    assert_equal "9780061120084", book.isbn_13
+    assert_equal "Harper Perennial", book.publisher
+    assert_equal 2006, book.publication_year
+    assert_equal "isbn", book.identified_by
+  end
 end
