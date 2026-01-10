@@ -364,21 +364,34 @@ end
 ```
 
 **Storage configuration:**
+
+Using local disk storage on a Hetzner dedicated server. Active Storage's default
+`:local` service stores files on the server's filesystem.
+
 ```yaml
 # config/storage.yml
-hetzner:
-  service: S3
-  access_key_id: <%= Rails.application.credentials.dig(:hetzner, :access_key_id) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:hetzner, :secret_access_key) %>
-  region: eu-central
-  bucket: book-swap-uploads
-  endpoint: https://fsn1.your-objectstorage.com  # Hetzner endpoint
+local:
+  service: Disk
+  root: <%= Rails.root.join("storage") %>
+
+# Production uses the same disk storage on the Hetzner server
+production:
+  service: Disk
+  root: <%= Rails.root.join("storage") %>
 ```
+
+```ruby
+# config/environments/production.rb
+config.active_storage.service = :production
+```
+
+**Note:** Ensure the `storage/` directory is included in backups and has adequate
+disk space on the Hetzner server.
 
 **Files:**
 - `app/models/book.rb` (add `has_many_attached :condition_photos`)
-- `config/storage.yml` (configure Hetzner storage)
-- `config/environments/production.rb` (set `config.active_storage.service = :hetzner`)
+- `config/storage.yml` (configure disk storage)
+- `config/environments/production.rb` (set `config.active_storage.service = :production`)
 - `app/views/books/_condition_photos_form.html.erb`
 
 ---
@@ -444,9 +457,11 @@ Book saved with `identified_by: "manual"`.
 
 ### Storage
 
-- **Provider:** Hetzner Object Storage
+- **Provider:** Local disk on Hetzner dedicated server
 - **Usage:** Condition photos, manually uploaded cover photos
-- **Configuration:** S3-compatible API via Active Storage
+- **Configuration:** Active Storage with Disk service
+- **Location:** `Rails.root.join("storage")` on the server
+- **Backup:** Ensure storage directory is included in server backups
 
 ### External API Keys Required
 
@@ -458,10 +473,6 @@ Book saved with `identified_by: "manual"`.
    - Get from: Google Cloud Console (enable Vision API)
    - Store in: `Rails.application.credentials.google_cloud` (service account JSON)
 
-3. **Hetzner Object Storage** - for Active Storage
-   - Get from: Hetzner Cloud Console
-   - Store in: `Rails.application.credentials.hetzner`
-
 ---
 
 ## Cost Estimates
@@ -471,9 +482,9 @@ Book saved with `identified_by: "manual"`.
 | Open Library | Unlimited | Free |
 | Google Books | 1000/day free | Free for MVP |
 | Google Cloud Vision | Per 1000 images | ~$1.50 |
-| Hetzner Storage | Per GB/month | ~$0.01/GB |
+| Hetzner Server | Includes disk storage | Part of server rental |
 
-**Estimated monthly cost for 1000 image-based identifications:** ~$1.50 + storage
+**Estimated monthly cost for 1000 image-based identifications:** ~$1.50
 
 ---
 
