@@ -25,6 +25,9 @@ gem "stripe", "9.1.0"
 # Google Cloud Vision for book cover/title page OCR
 gem "google-cloud-vision"
 
+# HTTP client for external API requests
+gem "faraday"
+
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 gem "bcrypt", "~> 3.1.7"
 

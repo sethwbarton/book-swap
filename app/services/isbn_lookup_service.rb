@@ -1,9 +1,5 @@
 # frozen_string_literal: true
 
-require "net/http"
-require "json"
-require "uri"
-
 class IsbnLookupService
   OPEN_LIBRARY_BASE_URL = "https://openlibrary.org"
   GOOGLE_BOOKS_BASE_URL = "https://www.googleapis.com/books/v1/volumes"
@@ -29,44 +25,37 @@ class IsbnLookupService
     end
 
     def lookup_open_library(isbn)
-      uri = URI.parse("#{OPEN_LIBRARY_BASE_URL}/isbn/#{isbn}.json")
-      response = fetch_json(uri)
-      return nil unless response
+      response = http_client.get("#{OPEN_LIBRARY_BASE_URL}/isbn/#{isbn}.json")
+      return nil unless response.success?
 
-      parse_open_library_response(response, isbn)
-    rescue StandardError => e
+      parse_open_library_response(JSON.parse(response.body), isbn)
+    rescue Faraday::Error, JSON::ParserError => e
       Rails.logger.error("Open Library lookup error: #{e.message}")
       nil
     end
 
     def lookup_google_books(isbn)
       api_key = Rails.application.credentials.dig(:google_books_api_key)
-      uri = URI.parse(GOOGLE_BOOKS_BASE_URL)
       params = { q: "isbn:#{isbn}" }
       params[:key] = api_key if api_key.present?
-      uri.query = URI.encode_www_form(params)
 
-      response = fetch_json(uri)
-      return nil unless response && response["totalItems"].to_i > 0
+      response = http_client.get(GOOGLE_BOOKS_BASE_URL, params)
+      return nil unless response.success?
 
-      parse_google_books_response(response)
-    rescue StandardError => e
+      data = JSON.parse(response.body)
+      return nil unless data["totalItems"].to_i > 0
+
+      parse_google_books_response(data)
+    rescue Faraday::Error, JSON::ParserError => e
       Rails.logger.error("Google Books lookup error: #{e.message}")
       nil
     end
 
-    def fetch_json(uri)
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = true
-      http.open_timeout = 5
-      http.read_timeout = 10
-
-      request = Net::HTTP::Get.new(uri)
-      response = http.request(request)
-
-      return nil unless response.is_a?(Net::HTTPSuccess)
-
-      JSON.parse(response.body)
+    def http_client
+      @http_client ||= Faraday.new do |f|
+        f.options.timeout = 10
+        f.options.open_timeout = 5
+      end
     end
 
     def parse_open_library_response(data, original_isbn)
@@ -88,10 +77,11 @@ class IsbnLookupService
     def fetch_author_name(author_key)
       return nil unless author_key
 
-      uri = URI.parse("#{OPEN_LIBRARY_BASE_URL}#{author_key}.json")
-      response = fetch_json(uri)
-      response&.dig("name")
-    rescue StandardError
+      response = http_client.get("#{OPEN_LIBRARY_BASE_URL}#{author_key}.json")
+      return nil unless response.success?
+
+      JSON.parse(response.body)["name"]
+    rescue Faraday::Error, JSON::ParserError
       nil
     end
 

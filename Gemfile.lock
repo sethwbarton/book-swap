@@ -496,6 +496,7 @@ DEPENDENCIES
   brakeman
   capybara
   debug
+  faraday
   google-cloud-vision
   importmap-rails
   jbuilder

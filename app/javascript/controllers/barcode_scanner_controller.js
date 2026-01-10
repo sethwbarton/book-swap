@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import "quagga2" // Ensures UMD script loads and attaches to window.Quagga
 
 // Barcode scanner controller using quagga2 for ISBN detection
 // quagga2 is loaded as a UMD bundle and exposes window.Quagga
@@ -18,16 +19,36 @@ export default class extends Controller {
   }
 
   connect() {
-    this.Quagga = window.Quagga
     this.isScanning = false
     this.lastDetectedCode = null
 
-    if (!this.Quagga) {
+    // Wait for Quagga to be available on window (UMD libraries may need a moment)
+    this.waitForQuagga().then(() => {
+      this.Quagga = window.Quagga
+      this.initializeScanner()
+    }).catch(() => {
       this.showError("Barcode scanner library not loaded. Please refresh the page.")
-      return
-    }
+    })
+  }
 
-    this.initializeScanner()
+  waitForQuagga(timeout = 5000) {
+    return new Promise((resolve, reject) => {
+      if (window.Quagga) {
+        resolve()
+        return
+      }
+
+      const startTime = Date.now()
+      const interval = setInterval(() => {
+        if (window.Quagga) {
+          clearInterval(interval)
+          resolve()
+        } else if (Date.now() - startTime > timeout) {
+          clearInterval(interval)
+          reject(new Error("Quagga failed to load"))
+        }
+      }, 50)
+    })
   }
 
   disconnect() {
