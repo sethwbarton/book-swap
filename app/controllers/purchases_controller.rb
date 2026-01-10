@@ -63,6 +63,9 @@ class PurchasesController < ApplicationController
                          },
                          quantity: 1
                        } ],
+          shipping_address_collection: {
+            allowed_countries: [ "US" ]
+          },
           success_url: book_url(@book),
           cancel_url: new_book_purchase_url(@book),
           metadata: {

@@ -23,7 +23,7 @@ class Webhooks::StripeControllerTest < ActionDispatch::IntegrationTest
     Rails.application.credentials.stubs(:dig).with(:stripe, :webhook_secret).returns(@webhook_secret)
   end
 
-  test "handles checkout.session.completed event" do
+  test "handles checkout.session.completed event and saves shipping address" do
     event_data = {
       "type" => "checkout.session.completed",
       "data" => {
@@ -37,7 +37,8 @@ class Webhooks::StripeControllerTest < ActionDispatch::IntegrationTest
       }
     }
 
-    # Create an OpenStruct that mimics Stripe::Event
+    # Create an OpenStruct that mimics the real Stripe::Checkout::Session structure
+    # Shipping details are nested under collected_information, not at the top level
     event = OpenStruct.new(
       type: "checkout.session.completed",
       data: OpenStruct.new(
@@ -46,7 +47,20 @@ class Webhooks::StripeControllerTest < ActionDispatch::IntegrationTest
           payment_intent: "pi_test_123",
           metadata: {
             purchase_id: @purchase.id.to_s
-          }
+          },
+          collected_information: OpenStruct.new(
+            shipping_details: OpenStruct.new(
+              name: "Jane Buyer",
+              address: OpenStruct.new(
+                line1: "123 Main St",
+                line2: "Apt 4B",
+                city: "New York",
+                state: "NY",
+                postal_code: "10001",
+                country: "US"
+              )
+            )
+          )
         )
       )
     )
@@ -62,6 +76,15 @@ class Webhooks::StripeControllerTest < ActionDispatch::IntegrationTest
     assert_equal "completed", @purchase.status
     assert_equal "pi_test_123", @purchase.stripe_payment_intent_id
     assert @book.reload.sold
+
+    # Assert shipping address was saved
+    assert_equal "Jane Buyer", @purchase.shipping_name
+    assert_equal "123 Main St", @purchase.shipping_address_line1
+    assert_equal "Apt 4B", @purchase.shipping_address_line2
+    assert_equal "New York", @purchase.shipping_city
+    assert_equal "NY", @purchase.shipping_state
+    assert_equal "10001", @purchase.shipping_postal_code
+    assert_equal "US", @purchase.shipping_country
   end
 
   test "handles checkout.session.expired event" do

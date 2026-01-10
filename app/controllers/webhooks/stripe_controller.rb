@@ -36,16 +36,43 @@ module Webhooks
     private
 
     def handle_checkout_completed(session)
+      Rails.logger.info("=" * 60)
+      Rails.logger.info("STRIPE WEBHOOK: checkout.session.completed")
+      Rails.logger.info("=" * 60)
+      Rails.logger.info("Session ID: #{session.id}")
+      Rails.logger.info("Payment Intent: #{session.payment_intent}")
+      Rails.logger.info("Session object class: #{session.class.name}")
+      Rails.logger.info("-" * 60)
+      Rails.logger.info("Full session data:")
+      Rails.logger.info(JSON.pretty_generate(session.to_hash)) if session.respond_to?(:to_hash)
+      Rails.logger.info("-" * 60)
+      Rails.logger.info("Collected information: #{session.collected_information.inspect}")
+      Rails.logger.info("=" * 60)
+
       purchase = Purchase.find_by(stripe_checkout_session_id: session.id)
+      Rails.logger.info("Found purchase: #{purchase&.id || 'NOT FOUND'}")
       return unless purchase
+
+      shipping = session.collected_information.shipping_details
+      Rails.logger.info("Extracting shipping - name: #{shipping&.name}, address: #{shipping&.address.inspect}")
 
       purchase.update!(
         stripe_payment_intent_id: session.payment_intent,
-        status: "completed"
+        shipping_name: shipping.name,
+        shipping_address_line1: shipping.address.line1,
+        shipping_address_line2: shipping.address.line2,
+        shipping_city: shipping.address.city,
+        shipping_state: shipping.address.state,
+        shipping_postal_code: shipping.address.postal_code,
+        shipping_country: shipping.address.country
       )
+      Rails.logger.info("Purchase #{purchase.id} updated with shipping address")
+
       purchase.complete!
+      Rails.logger.info("Purchase #{purchase.id} marked as complete")
     rescue => e
       Rails.logger.error("Failed to complete purchase #{purchase&.id}: #{e.message}")
+      Rails.logger.error(e.backtrace.first(10).join("\n"))
     end
 
     def handle_checkout_expired(session)

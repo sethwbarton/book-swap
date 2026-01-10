@@ -148,4 +148,17 @@ class PurchasesControllerTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_select "p", text: /error processing your request/i
   end
+
+  test "POST create requests shipping address collection from Stripe" do
+    # Unstub and set up expectation with specific parameters
+    Stripe::Checkout::Session.unstub(:create)
+
+    Stripe::Checkout::Session.expects(:create).with(
+      has_entry(shipping_address_collection: { allowed_countries: [ "US" ] })
+    ).returns(@mock_session)
+
+    post book_purchases_path(@available_book)
+
+    assert_redirected_to @mock_session.url
+  end
 end

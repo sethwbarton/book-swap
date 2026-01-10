@@ -24,8 +24,8 @@ class PurchaseTest < ActiveSupport::TestCase
 
   test "calculates platform fee correctly (10%)" do
     amount_cents = 1000
-    expected_fee = 100  # 10% of 1000
-    expected_seller_amount = 900  # 90% of 1000
+    expected_fee = 100 # 10% of 1000
+    expected_seller_amount = 900 # 90% of 1000
 
     fees = Purchase.calculate_fees(amount_cents)
 
@@ -36,7 +36,7 @@ class PurchaseTest < ActiveSupport::TestCase
   test "validates buyer cannot be seller" do
     purchase = Purchase.new(
       book: @book,
-      buyer: @seller,  # Same as seller
+      buyer: @seller, # Same as seller
       seller: @seller,
       amount_cents: 1299,
       platform_fee_cents: 130,
@@ -74,7 +74,7 @@ class PurchaseTest < ActiveSupport::TestCase
   end
 
   test "validates buyer cannot purchase same book twice - completed purchase exists" do
-    # Create completed purchase
+    # Create completed purchase with shipping address
     Purchase.create!(
       book: @book,
       buyer: @buyer,
@@ -82,7 +82,13 @@ class PurchaseTest < ActiveSupport::TestCase
       amount_cents: 1299,
       platform_fee_cents: 130,
       seller_amount_cents: 1169,
-      status: "completed"
+      status: "completed",
+      shipping_name: "Jane Buyer",
+      shipping_address_line1: "123 Main St",
+      shipping_city: "New York",
+      shipping_state: "NY",
+      shipping_postal_code: "10001",
+      shipping_country: "US"
     )
 
     # Try to create another purchase
@@ -176,7 +182,13 @@ class PurchaseTest < ActiveSupport::TestCase
       amount_cents: 1299,
       platform_fee_cents: 130,
       seller_amount_cents: 1169,
-      status: "pending"
+      status: "pending",
+      shipping_name: "Jane Buyer",
+      shipping_address_line1: "123 Main St",
+      shipping_city: "New York",
+      shipping_state: "NY",
+      shipping_postal_code: "10001",
+      shipping_country: "US"
     )
 
     assert_equal "pending", purchase.status

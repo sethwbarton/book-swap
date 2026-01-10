@@ -10,6 +10,7 @@ class Purchase < ApplicationRecord
   validate :buyer_cannot_be_seller
   validate :buyer_cannot_purchase_same_book_twice
   validate :book_must_not_be_sold
+  validate :shipping_address_required_when_completed
 
   def self.platform_fee_percentage
     Rails.application.config.platform_fee_percentage
@@ -62,5 +63,16 @@ class Purchase < ApplicationRecord
     if book&.sold?
       errors.add(:book_id, "has already been sold")
     end
+  end
+
+  def shipping_address_required_when_completed
+    return unless status == "completed"
+
+    errors.add(:shipping_name, "can't be blank") if shipping_name.blank?
+    errors.add(:shipping_address_line1, "can't be blank") if shipping_address_line1.blank?
+    errors.add(:shipping_city, "can't be blank") if shipping_city.blank?
+    errors.add(:shipping_state, "can't be blank") if shipping_state.blank?
+    errors.add(:shipping_postal_code, "can't be blank") if shipping_postal_code.blank?
+    errors.add(:shipping_country, "can't be blank") if shipping_country.blank?
   end
 end

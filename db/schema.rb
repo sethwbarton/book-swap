@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_09_025808) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_10_035928) do
   create_table "books", force: :cascade do |t|
     t.string "title"
     t.string "author"
@@ -37,6 +37,13 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_09_025808) do
     t.integer "platform_fee_cents", null: false
     t.integer "seller_amount_cents", null: false
     t.datetime "cancelled_at"
+    t.string "shipping_name"
+    t.string "shipping_address_line1"
+    t.string "shipping_address_line2"
+    t.string "shipping_city"
+    t.string "shipping_state"
+    t.string "shipping_postal_code"
+    t.string "shipping_country"
     t.index ["book_id"], name: "index_purchases_on_book_id"
     t.index ["buyer_id"], name: "index_purchases_on_buyer_id"
     t.index ["seller_id"], name: "index_purchases_on_seller_id"
