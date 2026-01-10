@@ -98,8 +98,11 @@ class PurchasesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "POST create creates Stripe Checkout Session and redirects" do
-    # Skip Stripe integration test for now - will test manually
-    skip "Stripe integration test - test manually with Stripe CLI"
+    post book_purchases_path(@available_book)
+
+    purchase = Purchase.last
+    assert_equal "cs_test_123", purchase.stripe_checkout_session_id
+    assert_redirected_to "https://checkout.stripe.com/pay/cs_test_123"
   end
 
   test "POST create prevents buying own book" do
@@ -134,7 +137,15 @@ class PurchasesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "POST create handles Stripe API errors gracefully" do
-    # Skip Stripe error handling test for now - will test manually
-    skip "Stripe error handling test - test manually with Stripe CLI"
+    Stripe::Checkout::Session.stubs(:create).raises(Stripe::StripeError.new("Card declined"))
+
+    assert_no_difference("Purchase.count") do
+      post book_purchases_path(@available_book)
+    end
+
+    assert_not Purchase.exists?(book: @available_book), "Purchase should not exist after Stripe error"
+    assert_redirected_to new_book_purchase_path(@available_book)
+    follow_redirect!
+    assert_select "p", text: /error processing your request/i
   end
 end
