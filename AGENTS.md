@@ -1,37 +1,178 @@
-# Product Overview
+# Book Swap - Agent Guidelines
 
-You are creating an online platform for users to sell or trade books from their home library.
+## Product Overview
 
-Users can create an account, list books by scanning the barcodes with their phone camera, and others can offer to
-purchase or trade books with them.
+An online platform for users to sell or trade books from their home library. Users can:
+- Create an account and list books by scanning barcodes or entering details manually
+- Post photographs for condition evaluation
+- Purchase books or offer trades with other users
 
-Users also have the ability to enter book details manually or to post photographs of their books so that others can
-evaluate their condition.
+## Tech Stack
 
-# Technical Information
+- **Framework:** Ruby on Rails 8.0.2
+- **Ruby Version:** 3.4.5
+- **Database:** SQLite
+- **Frontend:** Tailwind CSS, Hotwire (Turbo + Stimulus)
+- **Payments:** Stripe Connect (10% platform fee)
+- **Testing:** Minitest, Capybara, Mocha
+- **Linting:** RuboCop (rubocop-rails-omakase)
 
-Our application uses Ruby on Rails version 8, which is the latest version of Ruby on Rails.
+## Build/Test/Lint Commands
 
-For web page styling, we are using Tailwind CSS.
-For frontend interactions we are using Hotwire Stimulus.
-For loading portions of the page we are using Hotwire Turbo.
-We are not using ViewComponent. Instead, all our componentization should happen with partials and Ruby classes.
+```bash
+# Run all tests (unit + system)
+rails test:all
 
-# Coding Practices
+# Run a single test file
+rails test test/controllers/books_controller_test.rb
 
-You do Test-driven Development. Before implementing a feature, you must write an automated test (unit test or otherwise)
-that necessitates that feature to be built before it may pass.
-You should try to write tests at a high level representing the user's experience where possible, and only write tests
-specific to an individual class or file when necessary.
+# Run a specific test by line number
+rails test test/controllers/books_controller_test.rb:25
 
-You may not delete tests without my permission.
+# Run only model tests
+rails test test/models/
 
-You must always run the tests before implementing anything else and they must pass before moving on to the next task.
+# Run only system tests
+rails test:system
 
-Every time you have a newly passing test, you must consider whether any of the code you wrote could be simplified or
-cleaned up. You should always be looking to delete production code that is no longer used. You must never delete test
-code without my permission.
+# Run linter
+rubocop
 
-You can run the tests simply with `rails test:all`.
+# Run linter with auto-fix
+rubocop -a
 
-Do not test anything related to styling. Styling needs to be able to change at any moment without breaking tests.
+# Security scan
+brakeman
+
+# Database setup
+rails db:prepare
+rails db:test:prepare
+```
+
+## Test-Driven Development Requirements
+
+1. **Write tests first** - Before implementing any feature, write an automated test that will fail until the feature is built
+2. **Prefer high-level tests** - Write tests representing user experience (system/integration tests) over unit tests when possible
+3. **Never delete tests** without explicit permission
+4. **Tests must pass** before moving to the next task
+5. **Refactor after green** - When tests pass, consider simplifying code and removing unused production code
+6. **No style testing** - Do not test CSS/styling; styles must be changeable without breaking tests
+
+## Code Style Guidelines
+
+### Ruby Conventions
+
+- Use `snake_case` for files, methods, variables
+- Use `CamelCase` for classes/modules
+- Namespaced controllers go in subdirectories (e.g., `app/controllers/webhooks/stripe_controller.rb`)
+- Array syntax with spaces inside brackets: `[ :show, :edit, :update ]`
+- Symbol keys for hashes (no hash rockets): `{ key: value }`
+- Bang methods for mutations: `mark_as_sold!`
+
+### Controller Patterns
+
+- Use `before_action` for shared setup logic
+- Strong parameters with `*_params` naming convention
+- Guard clauses for early returns
+- Flash messages: `notice:` for success, `alert:` for errors
+- Return `status: :unprocessable_entity` on validation failures
+
+### Model Patterns
+
+- Order: associations, validations, scopes, public methods, private methods
+- Scopes as lambdas: `scope :completed, -> { where(status: "completed") }`
+- Use `transaction` blocks for atomic operations
+- Store money as cents (integers)
+- Private validation methods
+
+### Error Handling
+
+```ruby
+rescue Stripe::StripeError => e
+  Rails.logger.error("Stripe error: #{e.message}")
+  redirect_to new_purchase_path, alert: "Payment processing failed."
+end
+```
+
+### Test Conventions
+
+```ruby
+class BooksControllerTest < ActionDispatch::IntegrationTest
+  def setup
+    @user = users(:seller_one)
+    login_as(@user)
+  end
+
+  test "GET /books/new renders the new book form" do
+    get new_book_path
+    assert_response :success
+    assert_select "h1", text: "Add a New Book"
+  end
+
+  private
+
+  def login_as(user)
+    post session_path, params: { email_address: user.email_address, password: "password" }
+    follow_redirect! if response.redirect?
+  end
+end
+```
+
+### Mocking External Services (Stripe)
+
+```ruby
+require "mocha/minitest"
+
+test "handles Stripe errors gracefully" do
+  Stripe::Checkout::Session.stubs(:create).raises(Stripe::StripeError.new("Card declined"))
+  
+  assert_no_difference("Purchase.count") do
+    post book_purchases_path(@book)
+  end
+  
+  assert_redirected_to new_book_purchase_path(@book)
+end
+```
+
+### Stimulus Controllers
+
+```javascript
+import { Controller } from "@hotwired/stimulus"
+
+export default class extends Controller {
+  static targets = [ "output" ]
+  static values = { url: String }
+
+  connect() {
+    // Called when controller connects to DOM
+  }
+}
+```
+
+## File Organization
+
+```
+app/
+  controllers/
+    concerns/          # Shared controller modules (e.g., authentication.rb)
+    webhooks/          # Webhook handlers (e.g., stripe_controller.rb)
+    users/             # User-namespaced controllers
+  models/
+  views/
+    shared/            # Shared partials
+    layouts/
+test/
+  controllers/
+    webhooks/          # Mirror app structure
+  models/
+  system/              # Browser-based tests
+  fixtures/            # Test data (YAML with ERB)
+```
+
+## Important Patterns
+
+- **Authentication:** Custom session-based auth using `Current.user` (not Devise)
+- **Money:** Store as cents (integers), display with formatting helpers
+- **Componentization:** Use partials and Ruby classes, not ViewComponent
+- **Forms:** Use Turbo by default; add `data: { turbo: false }` to disable
+- **Current user:** Access via `Current.user` (ActiveSupport::CurrentAttributes)
