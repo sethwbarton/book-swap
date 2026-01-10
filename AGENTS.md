@@ -3,9 +3,12 @@
 ## Product Overview
 
 An online platform for users to sell or trade books from their home library. Users can:
+
 - Create an account and list books by scanning barcodes or entering details manually
 - Post photographs for condition evaluation
 - Purchase books or offer trades with other users
+
+To get an idea of some of what we are considering building or have built check the .agents folder.
 
 ## Tech Stack
 
@@ -51,8 +54,10 @@ rails db:test:prepare
 
 ## Test-Driven Development Requirements
 
-1. **Write tests first** - Before implementing any feature, write an automated test that will fail until the feature is built
-2. **Prefer high-level tests** - Write tests representing user experience (system/integration tests) over unit tests when possible
+1. **Write tests first** - Before implementing any feature, write an automated test that will fail until the feature is
+   built
+2. **Prefer high-level tests** - Write tests representing user experience (system/integration tests) over unit tests
+   when possible
 3. **Never delete tests** without explicit permission
 4. **Tests must pass** before moving to the next task
 5. **Refactor after green** - When tests pass, consider simplifying code and removing unused production code
@@ -89,14 +94,15 @@ rails db:test:prepare
 
 ```ruby
 rescue Stripe::StripeError => e
-  Rails.logger.error("Stripe error: #{e.message}")
-  redirect_to new_purchase_path, alert: "Payment processing failed."
+Rails.logger.error("Stripe error: #{e.message}")
+redirect_to new_purchase_path, alert: "Payment processing failed."
 end
 ```
 
 ### Test Conventions
 
 ```ruby
+
 class BooksControllerTest < ActionDispatch::IntegrationTest
   def setup
     @user = users(:seller_one)
@@ -125,11 +131,11 @@ require "mocha/minitest"
 
 test "handles Stripe errors gracefully" do
   Stripe::Checkout::Session.stubs(:create).raises(Stripe::StripeError.new("Card declined"))
-  
+
   assert_no_difference("Purchase.count") do
     post book_purchases_path(@book)
   end
-  
+
   assert_redirected_to new_book_purchase_path(@book)
 end
 ```
@@ -137,11 +143,11 @@ end
 ### Stimulus Controllers
 
 ```javascript
-import { Controller } from "@hotwired/stimulus"
+import {Controller} from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = [ "output" ]
-  static values = { url: String }
+  static targets = ["output"]
+  static values = {url: String}
 
   connect() {
     // Called when controller connects to DOM
