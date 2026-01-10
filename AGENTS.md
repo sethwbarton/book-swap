@@ -16,9 +16,38 @@ To get an idea of some of what we are considering building or have built check t
 - **Ruby Version:** 3.4.5
 - **Database:** SQLite
 - **Frontend:** Tailwind CSS, Hotwire (Turbo + Stimulus)
+- **JavaScript:** Import maps (nobuild) - no npm/webpack for frontend dependencies
 - **Payments:** Stripe Connect (10% platform fee)
 - **Testing:** Minitest, Capybara, Mocha
 - **Linting:** RuboCop (rubocop-rails-omakase)
+
+### JavaScript Dependencies (Import Maps)
+
+This app uses Rails 8's **import maps** approach (nobuild). Frontend JavaScript dependencies
+are pinned in `config/importmap.rb` and loaded from CDNs, not installed via npm.
+
+**Key points:**
+- The top-level `package.json` is for **development tooling only** (linters, etc.), not frontend deps
+- Use `bin/importmap pin <package>` to add JS dependencies
+- For libraries that don't support ES modules (CommonJS/UMD), pin the UMD bundle from CDN
+  and access via `window.<GlobalName>` in Stimulus controllers
+
+**Example - Adding an ES module compatible library:**
+```bash
+bin/importmap pin lodash-es
+```
+
+**Example - Adding a UMD-only library (like quagga2):**
+```ruby
+# config/importmap.rb
+pin "quagga2", to: "https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.10.1/dist/quagga.min.js"
+```
+```javascript
+// In Stimulus controller - access from window since UMD exposes globally
+connect() {
+  this.Quagga = window.Quagga
+}
+```
 
 ## Build/Test/Lint Commands
 

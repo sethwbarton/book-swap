@@ -76,9 +76,15 @@ For books without ISBNs (old books, international editions, damaged barcodes):
 - Excellent ISBN/EAN barcode support
 - Works well on mobile browsers
 
+**Import Maps Compatibility Note:**
+Quagga2 is a CommonJS/UMD library and does not natively support ES modules. Since this
+app uses Rails 8 with import maps (nobuild), we load quagga2 via CDN as a UMD bundle
+which exposes `window.Quagga` globally. The Stimulus controller accesses it from `window`.
+
 Alternatives considered:
 - `zxing-js` - Good but requires more configuration
 - `html5-qrcode` - Lighter but less barcode format support
+- Native `BarcodeDetector` API - Only works in Chrome/Edge, not Safari/Firefox
 
 ### ISBN Lookup
 
@@ -254,21 +260,37 @@ end
 
 Client-side barcode scanning using `quagga2`.
 
+**Setup for Rails 8 Import Maps (nobuild):**
+
+Since quagga2 is a UMD library (not ES modules), we pin it from a CDN and access
+the global `window.Quagga` object in our Stimulus controller.
+
+```ruby
+# config/importmap.rb
+pin "quagga2", to: "https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.10.1/dist/quagga.min.js"
+```
+
+```erb
+<%# Ensure quagga2 loads before the controller (in layout or scanning page) %>
+<%= javascript_import_module_tag "quagga2" %>
+```
+
 ```javascript
 // app/javascript/controllers/barcode_scanner_controller.js
 import { Controller } from "@hotwired/stimulus"
-import Quagga from "@ericblade/quagga2"
 
 export default class extends Controller {
   static targets = ["video", "result", "error"]
   static values = { lookupUrl: String }
   
   connect() {
+    // Access Quagga from window (UMD bundle exposes it globally)
+    this.Quagga = window.Quagga
     this.initializeScanner()
   }
   
   disconnect() {
-    Quagga.stop()
+    this.Quagga.stop()
   }
   
   initializeScanner() {
@@ -285,7 +307,7 @@ export default class extends Controller {
 ```
 
 **Files:**
-- `package.json` (add `@ericblade/quagga2`)
+- `config/importmap.rb` (pin quagga2 from CDN)
 - `app/javascript/controllers/barcode_scanner_controller.js`
 
 ---
