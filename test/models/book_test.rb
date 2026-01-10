@@ -9,6 +9,31 @@ class BookTest < ActiveSupport::TestCase
     assert_equal "F. Scott Fitzgerald", book.author
   end
 
+  test "can create a book with ISBN and identification fields" do
+    book = Book.create(
+      title: "To Kill a Mockingbird",
+      author: "Harper Lee",
+      price: 10.99,
+      user: users(:seller_one),
+      isbn_10: "0061120081",
+      isbn_13: "9780061120084",
+      description: "The unforgettable novel of a childhood in a sleepy Southern town",
+      cover_image_url: "https://covers.openlibrary.org/b/isbn/9780061120084-L.jpg",
+      publisher: "Harper Perennial",
+      publication_year: 2006,
+      page_count: 336,
+      identified_by: "isbn"
+    )
+
+    assert book.persisted?
+    assert_equal "0061120081", book.isbn_10
+    assert_equal "9780061120084", book.isbn_13
+    assert_equal "Harper Perennial", book.publisher
+    assert_equal 2006, book.publication_year
+    assert_equal 336, book.page_count
+    assert_equal "isbn", book.identified_by
+  end
+
   test "available? returns true when not sold" do
     book = books(:the_great_gatsby)
 

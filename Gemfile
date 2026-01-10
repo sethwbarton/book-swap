@@ -68,6 +68,9 @@ group :test do
 
   # Mocking library for tests
   gem "mocha"
+
+  # HTTP request stubbing for external API tests
+  gem "webmock"
 end
 
 gem "rubocop-erb", "~> 0.7.0"

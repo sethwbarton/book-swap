@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_10_035928) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_10_054842) do
   create_table "books", force: :cascade do |t|
     t.string "title"
     t.string "author"
@@ -19,6 +19,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_10_035928) do
     t.integer "user_id", null: false
     t.decimal "price", precision: 14, scale: 2
     t.boolean "sold", default: false, null: false
+    t.string "isbn_10"
+    t.string "isbn_13"
+    t.text "description"
+    t.string "cover_image_url"
+    t.string "publisher"
+    t.integer "publication_year"
+    t.integer "page_count"
+    t.string "identified_by"
+    t.index ["isbn_10"], name: "index_books_on_isbn_10"
+    t.index ["isbn_13"], name: "index_books_on_isbn_13"
     t.index ["sold"], name: "index_books_on_sold"
     t.index ["user_id"], name: "index_books_on_user_id"
   end
