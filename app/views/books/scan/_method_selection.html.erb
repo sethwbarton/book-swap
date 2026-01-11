@@ -1,7 +1,7 @@
 <%# Step 1: Choose identification method %>
 <div class="space-y-6">
   <p class="text-gray-600">How would you like to add your book?</p>
-  
+
   <div class="grid gap-4 md:grid-cols-2">
     <%# Barcode Scanner Option %>
     <%= link_to scan_barcode_books_path,
@@ -22,10 +22,5 @@
     <% end %>
   </div>
 
-  <div class="text-center">
-    <%= link_to "Enter book details manually",
-                scan_manual_books_path,
-                data: { turbo_frame: "scan_step", turbo_action: "advance" },
-                class: "text-blue-600 hover:text-blue-800 underline" %>
-  </div>
+  <%= render partial: "books/scan/manual_entry_prompt" %>
 </div>

@@ -11,13 +11,13 @@
 
   <div data-controller="barcode-scanner"
        data-barcode-scanner-lookup-url-value="<%= book_lookups_isbn_path %>">
-    
+
     <div data-barcode-scanner-target="viewport"
          class="bg-black rounded-lg overflow-hidden aspect-video mb-4">
     </div>
 
     <%= render "shared/loading_spinner", target: "barcode-scanner", message: "Looking up book..." %>
-    
+
     <div id="scan_error"
          data-barcode-scanner-target="error"
          class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -28,12 +28,7 @@
     <p class="text-sm text-gray-500 mt-4">
       Point your camera at the barcode on the back of the book. The ISBN barcode is usually near the price.
     </p>
-    
-    <div class="mt-4 text-center">
-      <%= link_to "Enter details manually instead",
-                  scan_manual_books_path,
-                  data: { turbo_frame: "scan_step", turbo_action: "advance" },
-                  class: "text-blue-600 hover:text-blue-800 underline" %>
-    </div>
+
+    <%= render partial: "books/scan/manual_entry_prompt" %>
   </div>
 </turbo-frame>

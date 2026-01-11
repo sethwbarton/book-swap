@@ -125,6 +125,14 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href='#{scan_photo_books_path}']", text: /Take Photo/
   end
 
+  test "GET /books/scan renders a way to enter the ISBN manually" do
+    get scan_books_path
+    assert_response :success
+
+    assert_select "label", text: "ISBN"
+    assert_select "input[type='submit'][value='Get Details for ISBN Manually']", count: 1
+  end
+
   test "GET /books/scan without Stripe account shows payment setup prompt" do
     @user.update!(stripe_account_id: nil)
 
