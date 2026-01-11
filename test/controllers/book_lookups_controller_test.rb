@@ -9,7 +9,7 @@ class BookLookupsControllerTest < ActionDispatch::IntegrationTest
 
   # === ISBN Lookup Tests ===
 
-  test "POST /book_lookups/isbn returns book data for valid ISBN" do
+  test "POST /book_lookups/isbn returns turbo stream with confirm form for valid ISBN" do
     isbn = "9780061120084"
     book_data = {
       title: "To Kill a Mockingbird",
@@ -25,46 +25,48 @@ class BookLookupsControllerTest < ActionDispatch::IntegrationTest
 
     IsbnLookupService.stubs(:lookup).with(isbn).returns(book_data)
 
-    post book_lookups_isbn_path, params: { isbn: isbn }, as: :json
+    post book_lookups_isbn_path, params: { isbn: isbn }
 
     assert_response :success
-    json = JSON.parse(response.body)
+    assert_equal "text/vnd.turbo-stream.html; charset=utf-8", response.content_type
 
-    assert_equal "To Kill a Mockingbird", json["title"]
-    assert_equal "Harper Lee", json["author"]
-    assert_equal "9780061120084", json["isbn_13"]
-    assert_equal "Harper Perennial", json["publisher"]
-    assert_equal 2006, json["publication_year"]
+    # Should replace scan_step turbo frame with confirm form
+    assert_match /<turbo-stream action="replace" target="scan_step">/, response.body
+    assert_match /To Kill a Mockingbird/, response.body
+    assert_match /Harper Lee/, response.body
+    assert_match /Confirm Book Details/, response.body
   end
 
-  test "POST /book_lookups/isbn returns not_found error for unknown ISBN" do
+  test "POST /book_lookups/isbn returns turbo stream error for unknown ISBN" do
     isbn = "0000000000000"
 
     IsbnLookupService.stubs(:lookup).with(isbn).returns(nil)
 
-    post book_lookups_isbn_path, params: { isbn: isbn }, as: :json
+    post book_lookups_isbn_path, params: { isbn: isbn }
 
     assert_response :not_found
-    json = JSON.parse(response.body)
+    assert_equal "text/vnd.turbo-stream.html; charset=utf-8", response.content_type
 
-    assert_equal "not_found", json["error"]
-    assert_equal "No book found for this ISBN", json["message"]
+    # Should update scan_error div with error message
+    assert_match /<turbo-stream action="update" target="scan_error">/, response.body
+    assert_match /No book found for ISBN: #{isbn}/, response.body
   end
 
-  test "POST /book_lookups/isbn returns error for missing ISBN param" do
-    post book_lookups_isbn_path, params: {}, as: :json
+  test "POST /book_lookups/isbn returns turbo stream error for missing ISBN param" do
+    post book_lookups_isbn_path, params: {}
 
     assert_response :unprocessable_entity
-    json = JSON.parse(response.body)
+    assert_equal "text/vnd.turbo-stream.html; charset=utf-8", response.content_type
 
-    assert_equal "invalid_request", json["error"]
-    assert_equal "ISBN is required", json["message"]
+    # Should update scan_error div with error message
+    assert_match /<turbo-stream action="update" target="scan_error">/, response.body
+    assert_match /ISBN is required/, response.body
   end
 
   test "POST /book_lookups/isbn requires authentication" do
     delete session_path # Log out
 
-    post book_lookups_isbn_path, params: { isbn: "9780061120084" }, as: :json
+    post book_lookups_isbn_path, params: { isbn: "9780061120084" }
 
     assert_response :redirect
   end
@@ -73,7 +75,7 @@ class BookLookupsControllerTest < ActionDispatch::IntegrationTest
     isbn = "9780061120084"
 
     # Create an existing book for this user with this ISBN
-    existing_book = Book.create!(
+    Book.create!(
       title: "Existing Book",
       author: "Test Author",
       price: 10.00,
@@ -92,14 +94,12 @@ class BookLookupsControllerTest < ActionDispatch::IntegrationTest
 
     IsbnLookupService.stubs(:lookup).with(isbn).returns(book_data)
 
-    post book_lookups_isbn_path, params: { isbn: isbn }, as: :json
+    post book_lookups_isbn_path, params: { isbn: isbn }
 
     assert_response :success
-    json = JSON.parse(response.body)
 
-    assert_equal true, json["duplicate"]
-    assert_equal existing_book.id, json["existing_book_id"]
-    assert_equal "You already have this book listed", json["duplicate_message"]
+    # Should show duplicate warning in the confirm form
+    assert_match /You already have this book listed/, response.body
   end
 
   test "POST /book_lookups/isbn does not include duplicate warning for new ISBN" do
@@ -114,13 +114,12 @@ class BookLookupsControllerTest < ActionDispatch::IntegrationTest
 
     IsbnLookupService.stubs(:lookup).with(isbn).returns(book_data)
 
-    post book_lookups_isbn_path, params: { isbn: isbn }, as: :json
+    post book_lookups_isbn_path, params: { isbn: isbn }
 
     assert_response :success
-    json = JSON.parse(response.body)
 
-    assert_equal false, json["duplicate"]
-    assert_nil json["existing_book_id"]
+    # Should NOT show duplicate warning
+    assert_no_match /You already have this book listed/, response.body
   end
 
   # === Image Lookup Tests ===

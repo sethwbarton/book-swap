@@ -120,9 +120,9 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     assert_select "h1", text: "Add a Book"
-    # Should show method selection options
-    assert_select "button", text: /Scan Barcode/
-    assert_select "button", text: /Take Photo/
+    # Should show method selection options as links (inside turbo-frame)
+    assert_select "a[href='#{scan_barcode_books_path}']", text: /Scan Barcode/
+    assert_select "a[href='#{scan_photo_books_path}']", text: /Take Photo/
   end
 
   test "GET /books/scan without Stripe account shows payment setup prompt" do

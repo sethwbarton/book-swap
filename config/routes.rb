@@ -27,6 +27,10 @@ Rails.application.routes.draw do
     resources :purchases, only: [ :new, :create ]
     collection do
       get :scan
+      get "scan/barcode", to: "books#scan_barcode", as: :scan_barcode
+      get "scan/photo", to: "books#scan_photo", as: :scan_photo
+      get "scan/manual", to: "books#scan_manual", as: :scan_manual
+      get "scan/confirm", to: "books#scan_confirm", as: :scan_confirm
     end
   end
 

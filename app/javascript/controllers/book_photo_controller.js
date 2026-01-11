@@ -1,11 +1,14 @@
 import { Controller } from "@hotwired/stimulus"
 
 // Photo capture controller for book identification and condition photos
+// Turbo is available globally via @hotwired/turbo-rails
 //
 // Usage for identification:
 // <div data-controller="book-photo"
 //      data-book-photo-mode-value="identify"
-//      data-book-photo-upload-url-value="/book_lookups/image">
+//      data-book-photo-upload-url-value="/book_lookups/image"
+//      data-book-photo-confirm-url-value="/books/scan/confirm"
+//      data-book-photo-manual-url-value="/books/scan/manual">
 //   <video data-book-photo-target="video"></video>
 //   <canvas data-book-photo-target="canvas" class="hidden"></canvas>
 //   <img data-book-photo-target="preview" class="hidden">
@@ -25,6 +28,8 @@ export default class extends Controller {
   static values = {
     mode: { type: String, default: "identify" }, // "identify" or "condition"
     uploadUrl: String,
+    confirmUrl: String,   // URL to navigate to on successful identification
+    manualUrl: String,    // URL for manual entry fallback
     csrfToken: String,
     maxPhotos: { type: Number, default: 5 }
   }
@@ -32,6 +37,7 @@ export default class extends Controller {
   connect() {
     this.stream = null
     this.capturedPhotos = [] // For condition mode
+    this.imageMatches = []   // For identification mode
 
     if (this.modeValue === "identify") {
       this.startCamera()
@@ -133,7 +139,7 @@ export default class extends Controller {
       const data = await response.json()
 
       if (response.ok) {
-        this.showResult(data)
+        this.handleIdentificationResult(data)
       } else {
         this.showError(data.message || "Could not identify book. Please try again or enter manually.")
       }
@@ -145,27 +151,39 @@ export default class extends Controller {
     }
   }
 
-  showResult(data) {
-    // Dispatch custom event with matches for parent controllers
-    this.dispatch("identified", {
-      detail: {
-        matches: data.matches || [],
-        message: data.message
-      }
-    })
+  handleIdentificationResult(data) {
+    this.imageMatches = data.matches || []
 
-    if (this.hasResultTarget && data.matches && data.matches.length > 0) {
-      this.resultTarget.innerHTML = this.renderMatches(data.matches)
-    } else if (this.hasResultTarget) {
-      this.resultTarget.innerHTML = `<p class="text-gray-500">${data.message || "No books found."}</p>`
+    if (this.imageMatches.length === 0) {
+      // No matches found, show message and option to enter manually
+      if (this.hasResultTarget) {
+        this.resultTarget.innerHTML = `
+          <div class="text-center py-4">
+            <p class="text-gray-600 mb-3">${data.message || "No books found in the image."}</p>
+            <a href="${this.manualUrlValue}" 
+               data-turbo-frame="scan_step"
+               class="text-blue-600 hover:text-blue-800 underline">
+              Enter book details manually
+            </a>
+          </div>
+        `
+      }
+    } else if (this.imageMatches.length === 1) {
+      // Single match, navigate directly to confirm
+      this.navigateToConfirm(this.imageMatches[0])
+    } else {
+      // Multiple matches, show selection UI
+      this.showMatchSelection()
     }
   }
 
-  renderMatches(matches) {
-    return `
+  showMatchSelection() {
+    if (!this.hasResultTarget) return
+
+    this.resultTarget.innerHTML = `
       <div class="space-y-2">
-        <p class="font-medium">Select a match:</p>
-        ${matches.map((book, index) => this.renderMatchOption(book, index)).join("")}
+        <p class="font-medium">Select the correct book:</p>
+        ${this.imageMatches.map((book, index) => this.renderMatchOption(book, index)).join("")}
       </div>
     `
   }
@@ -191,8 +209,37 @@ export default class extends Controller {
 
   selectMatch(event) {
     const index = parseInt(event.currentTarget.dataset.bookIndex, 10)
-    // Dispatch event with selected book
-    this.dispatch("selected", { detail: { index } })
+    if (this.imageMatches[index]) {
+      this.navigateToConfirm(this.imageMatches[index])
+    }
+  }
+
+  navigateToConfirm(bookData) {
+    if (!this.hasConfirmUrlValue) {
+      console.error("No confirm URL configured")
+      return
+    }
+
+    // Build URL with book data as query params
+    const params = new URLSearchParams()
+    if (bookData.title) params.set("title", bookData.title)
+    if (bookData.author) params.set("author", bookData.author)
+    if (bookData.isbn_10) params.set("isbn_10", bookData.isbn_10)
+    if (bookData.isbn_13) params.set("isbn_13", bookData.isbn_13)
+    if (bookData.cover_image_url) params.set("cover_image_url", bookData.cover_image_url)
+    if (bookData.publisher) params.set("publisher", bookData.publisher)
+    if (bookData.publication_year) params.set("publication_year", bookData.publication_year)
+    if (bookData.page_count) params.set("page_count", bookData.page_count)
+    if (bookData.description) params.set("description", bookData.description)
+    params.set("identified_by", "image")
+
+    const confirmUrl = `${this.confirmUrlValue}?${params.toString()}`
+    
+    // Stop camera before navigating
+    this.stopCamera()
+    
+    // Use Turbo to navigate within the frame
+    window.Turbo.visit(confirmUrl, { frame: "scan_step" })
   }
 
   // Condition photo mode methods

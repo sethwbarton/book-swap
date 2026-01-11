@@ -1,17 +1,9 @@
 <h1 class="text-3xl font-bold mb-6">Add a Book</h1>
 
 <% if @stripe_connected %>
-  <div data-controller="book-scan"
-       data-book-scan-isbn-lookup-url-value="<%= book_lookups_isbn_path %>"
-       data-book-scan-image-lookup-url-value="<%= book_lookups_image_path %>"
-       data-book-scan-create-url-value="<%= books_path %>">
-
+  <turbo-frame id="scan_step" data-turbo-action="advance">
     <%= render "books/scan/method_selection" %>
-    <%= render "books/scan/barcode_scanner" %>
-    <%= render "books/scan/photo_capture" %>
-    <%= render "books/scan/confirm_form", book: @book %>
-    <%= render "books/scan/manual_form", book: @book %>
-  </div>
+  </turbo-frame>
 <% else %>
   <%= render "books/scan/stripe_required" %>
 <% end %>
