@@ -1,58 +1,56 @@
 <%# Step: Photo Capture %>
-<turbo-frame id="scan_step" data-turbo-action="advance">
-  <div class="mb-4 flex justify-between items-center">
-    <h2 class="text-xl font-semibold">Take a Photo</h2>
-    <%= link_to scan_books_path,
-                data: { turbo_frame: "scan_step", turbo_action: "advance" },
-                class: "text-gray-600 hover:text-gray-800" do %>
-      &larr; Back
-    <% end %>
+<div class="mb-4 flex justify-between items-center">
+  <h2 class="text-xl font-semibold">Take a Photo</h2>
+  <%= link_to scan_books_path,
+              data: { turbo_frame: "scan_step", turbo_action: "advance" },
+              class: "text-gray-600 hover:text-gray-800" do %>
+    &larr; Back
+  <% end %>
+</div>
+
+<div data-controller="book-photo"
+     data-book-photo-mode-value="identify"
+     data-book-photo-upload-url-value="<%= book_lookups_image_path %>"
+     data-book-photo-confirm-url-value="<%= scan_confirm_books_path %>"
+     data-book-photo-manual-url-value="<%= scan_manual_books_path %>">
+
+  <video data-book-photo-target="video"
+         autoplay
+         playsinline
+         class="w-full rounded-lg bg-black aspect-video mb-4">
+  </video>
+
+  <canvas data-book-photo-target="canvas" class="hidden"></canvas>
+
+  <input type="file"
+         accept="image/*"
+         capture="environment"
+         data-book-photo-target="fileInput"
+         data-action="change->book-photo#handleFileSelect"
+         class="hidden">
+
+  <div class="flex gap-3 mb-4">
+    <button type="button"
+            data-action="click->book-photo#capture"
+            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+      Capture Photo
+    </button>
+    <button type="button"
+            data-action="click->book-photo#selectFromGallery"
+            class="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+      Choose from Gallery
+    </button>
   </div>
 
-  <div data-controller="book-photo"
-       data-book-photo-mode-value="identify"
-       data-book-photo-upload-url-value="<%= book_lookups_image_path %>"
-       data-book-photo-confirm-url-value="<%= scan_confirm_books_path %>"
-       data-book-photo-manual-url-value="<%= scan_manual_books_path %>">
+  <%= render "shared/loading_spinner", target: "book-photo", message: "Identifying book..." %>
+  <%= render "shared/error_alert", target: "book-photo" %>
 
-    <video data-book-photo-target="video"
-           autoplay
-           playsinline
-           class="w-full rounded-lg bg-black aspect-video mb-4">
-    </video>
+  <%# Results area for displaying matches from image recognition %>
+  <div data-book-photo-target="result"></div>
 
-    <canvas data-book-photo-target="canvas" class="hidden"></canvas>
+  <p class="text-sm text-gray-500 mt-4">
+    Take a clear photo of the book's cover or title page. Good lighting helps!
+  </p>
 
-    <input type="file"
-           accept="image/*"
-           capture="environment"
-           data-book-photo-target="fileInput"
-           data-action="change->book-photo#handleFileSelect"
-           class="hidden">
-
-    <div class="flex gap-3 mb-4">
-      <button type="button"
-              data-action="click->book-photo#capture"
-              class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors">
-        Capture Photo
-      </button>
-      <button type="button"
-              data-action="click->book-photo#selectFromGallery"
-              class="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-        Choose from Gallery
-      </button>
-    </div>
-
-    <%= render "shared/loading_spinner", target: "book-photo", message: "Identifying book..." %>
-    <%= render "shared/error_alert", target: "book-photo" %>
-
-    <%# Results area for displaying matches from image recognition %>
-    <div data-book-photo-target="result"></div>
-
-    <p class="text-sm text-gray-500 mt-4">
-      Take a clear photo of the book's cover or title page. Good lighting helps!
-    </p>
-
-    <%= render partial: 'books/scan/manual_entry_prompt' %>
-  </div>
-</turbo-frame>
+  <%= render partial: 'books/scan/manual_entry_prompt' %>
+</div>

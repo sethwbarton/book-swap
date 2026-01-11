@@ -1,34 +1,32 @@
 <%# Step 2: Barcode Scanner %>
-<turbo-frame id="scan_step" data-turbo-action="advance">
-  <div class="mb-4 flex justify-between items-center">
-    <h2 class="text-xl font-semibold">Scan ISBN Barcode</h2>
-    <%= link_to scan_books_path,
-                data: { turbo_frame: "scan_step", turbo_action: "advance" },
-                class: "text-gray-600 hover:text-gray-800" do %>
-      &larr; Back
-    <% end %>
+<div class="mb-4 flex justify-between items-center">
+  <h2 class="text-xl font-semibold">Scan ISBN Barcode</h2>
+  <%= link_to scan_books_path,
+              data: { turbo_frame: "scan_step", turbo_action: "advance" },
+              class: "text-gray-600 hover:text-gray-800" do %>
+    &larr; Back
+  <% end %>
+</div>
+
+<div data-controller="barcode-scanner"
+     data-barcode-scanner-lookup-url-value="<%= book_lookups_isbn_path %>">
+
+  <div data-barcode-scanner-target="viewport"
+       class="bg-black rounded-lg overflow-hidden aspect-video mb-4">
   </div>
 
-  <div data-controller="barcode-scanner"
-       data-barcode-scanner-lookup-url-value="<%= book_lookups_isbn_path %>">
+  <%= render "shared/loading_spinner", target: "barcode-scanner", message: "Looking up book..." %>
 
-    <div data-barcode-scanner-target="viewport"
-         class="bg-black rounded-lg overflow-hidden aspect-video mb-4">
-    </div>
-
-    <%= render "shared/loading_spinner", target: "barcode-scanner", message: "Looking up book..." %>
-
-    <div id="scan_error"
-         data-barcode-scanner-target="error"
-         class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-    </div>
-
-    <div data-barcode-scanner-target="result"></div>
-
-    <p class="text-sm text-gray-500 mt-4">
-      Point your camera at the barcode on the back of the book. The ISBN barcode is usually near the price.
-    </p>
-
-    <%= render partial: "books/scan/manual_entry_prompt" %>
+  <div id="scan_error"
+       data-barcode-scanner-target="error"
+       class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
   </div>
-</turbo-frame>
+
+  <div data-barcode-scanner-target="result"></div>
+
+  <p class="text-sm text-gray-500 mt-4">
+    Point your camera at the barcode on the back of the book. The ISBN barcode is usually near the price.
+  </p>
+
+  <%= render partial: "books/scan/manual_entry_prompt" %>
+</div>

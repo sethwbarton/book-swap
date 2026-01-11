@@ -170,4 +170,73 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
     assert_equal 2006, book.publication_year
     assert_equal "isbn", book.identified_by
   end
+
+  # Direct page visit tests - these URLs should work when refreshed or visited directly
+  test "GET /books/scan/barcode directly renders full page with layout" do
+    get scan_barcode_books_path
+    assert_response :success
+
+    # Should have full HTML document with head (CSS/JS loaded)
+    assert_select "html"
+    assert_select "head link[rel='stylesheet']"
+    assert_select "body"
+
+    # Should have the page title
+    assert_select "h1", text: "Add a Book"
+
+    # Should have the turbo frame with barcode scanner content
+    assert_select "turbo-frame#scan_step"
+    assert_select "[data-controller='barcode-scanner']"
+  end
+
+  test "GET /books/scan/photo directly renders full page with layout" do
+    get scan_photo_books_path
+    assert_response :success
+
+    # Should have full HTML document with head (CSS/JS loaded)
+    assert_select "html"
+    assert_select "head link[rel='stylesheet']"
+    assert_select "body"
+
+    # Should have the page title
+    assert_select "h1", text: "Add a Book"
+
+    # Should have the turbo frame with photo capture content
+    assert_select "turbo-frame#scan_step"
+    assert_select "[data-controller='book-photo']"
+  end
+
+  test "GET /books/scan/manual directly renders full page with layout" do
+    get scan_manual_books_path
+    assert_response :success
+
+    # Should have full HTML document with head (CSS/JS loaded)
+    assert_select "html"
+    assert_select "head link[rel='stylesheet']"
+    assert_select "body"
+
+    # Should have the page title
+    assert_select "h1", text: "Add a Book"
+
+    # Should have the turbo frame with manual form content
+    assert_select "turbo-frame#scan_step"
+    assert_select "form"
+  end
+
+  test "GET /books/scan/confirm directly renders full page with layout" do
+    get scan_confirm_books_path, params: { title: "Test Book", author: "Test Author" }
+    assert_response :success
+
+    # Should have full HTML document with head (CSS/JS loaded)
+    assert_select "html"
+    assert_select "head link[rel='stylesheet']"
+    assert_select "body"
+
+    # Should have the page title
+    assert_select "h1", text: "Add a Book"
+
+    # Should have the turbo frame with confirm form content
+    assert_select "turbo-frame#scan_step"
+    assert_select "form"
+  end
 end

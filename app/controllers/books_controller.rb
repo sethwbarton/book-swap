@@ -15,23 +15,19 @@ class BooksController < ApplicationController
 
   def scan_barcode
     @book = Book.new
-    render partial: "books/scan/barcode_scanner", layout: false
   end
 
   def scan_photo
     @book = Book.new
-    render partial: "books/scan/photo_capture", layout: false
   end
 
   def scan_manual
     @book = Book.new
-    render partial: "books/scan/manual_form", locals: { book: @book }, layout: false
   end
 
   def scan_confirm
     @book = Book.new(book_params_from_lookup)
     @duplicate = Current.user.books.exists?(isbn_13: @book.isbn_13) if @book.isbn_13.present?
-    render partial: "books/scan/confirm_form", locals: { book: @book, duplicate: @duplicate }, layout: false
   end
 
   def show
