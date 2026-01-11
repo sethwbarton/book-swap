@@ -10,7 +10,10 @@ class IsbnLookupService
       return nil unless valid_isbn?(normalized_isbn)
 
       result = lookup_open_library(normalized_isbn)
-      result ||= lookup_google_books(normalized_isbn)
+      if result.nil?
+        Rails.logger.info("Open Library lookup failed for ISBN #{normalized_isbn}, falling back to Google Books API")
+        result = lookup_google_books(normalized_isbn)
+      end
       result
     end
 
@@ -40,9 +43,11 @@ class IsbnLookupService
       params[:key] = api_key if api_key.present?
 
       response = http_client.get(GOOGLE_BOOKS_BASE_URL, params)
+      Rails.logger.info("Response from Google Books API: #{response.success?}")
       return nil unless response.success?
 
       data = JSON.parse(response.body)
+      Rails.logger.info("Google Books Response DATA: #{data}")
       return nil unless data["totalItems"].to_i > 0
 
       parse_google_books_response(data)
