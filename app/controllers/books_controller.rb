@@ -27,7 +27,8 @@ class BooksController < ApplicationController
     if @book.save
       redirect_to user_path(Current.user.username), notice: "Book was successfully listed."
     else
-      render :new, status: :unprocessable_entity
+      # Re-render the manual entry form with errors
+      render "books/entries/manuals/show", status: :unprocessable_entity
     end
   end
 

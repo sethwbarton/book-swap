@@ -23,17 +23,17 @@ Rails.application.routes.draw do
     get "/users/:username" => "users#show", as: :user
   end
 
-  namespace :books do
-    resource :scans, only: [ :show ] do
-      resource :barcode, only: [ :show ], module: :scans
-      resource :photo, only: [ :show ], module: :scans
-      resource :manual, only: [ :show ], module: :scans
-      resource :confirmation, only: [ :show ], module: :scans
-    end
-  end
-
   resources :books, only: [ :show, :new, :create, :index ] do
     resources :purchases, only: [ :new, :create ]
+
+    collection do
+      scope :new, as: :new do
+        resource :barcode, only: [ :show ], controller: "books/entries/barcodes"
+        resource :photo, only: [ :show ], controller: "books/entries/photos"
+        resource :manual, only: [ :show ], controller: "books/entries/manuals"
+        resource :confirmation, only: [ :show ], controller: "books/entries/confirmations"
+      end
+    end
   end
 
   # Book lookup endpoints for scanning feature

@@ -1,15 +1,15 @@
 require "test_helper"
 
 module Books
-  module Scans
+  module Entries
     class PhotosControllerTest < ActionDispatch::IntegrationTest
       setup do
         @user = users(:seller_one)
         login_as(@user)
       end
 
-      test "GET /books/scans/photo directly renders full page with layout" do
-        get books_scans_photo_path
+      test "GET /books/new/photo directly renders full page with layout" do
+        get new_photo_path
         assert_response :success
 
         # Should have full HTML document with head (CSS/JS loaded)
@@ -25,10 +25,10 @@ module Books
         assert_select "[data-controller='book-photo']"
       end
 
-      test "GET /books/scans/photo without Stripe account shows payment setup prompt" do
+      test "GET /books/new/photo without Stripe account shows payment setup prompt" do
         @user.update!(stripe_account_id: nil)
 
-        get books_scans_photo_path
+        get new_photo_path
         assert_response :success
 
         assert_select "p", text: /Before you can list books for sale/i

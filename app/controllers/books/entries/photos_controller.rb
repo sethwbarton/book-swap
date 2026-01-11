@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module Books
-  module Scans
-    class BarcodesController < ApplicationController
+  module Entries
+    class PhotosController < ApplicationController
       include RequiresStripeConnection
 
       def show

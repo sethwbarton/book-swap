@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Books
-  module Scans
+  module Entries
     class ConfirmationsController < ApplicationController
       include RequiresStripeConnection
 

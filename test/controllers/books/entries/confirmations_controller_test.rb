@@ -1,15 +1,15 @@
 require "test_helper"
 
 module Books
-  module Scans
+  module Entries
     class ConfirmationsControllerTest < ActionDispatch::IntegrationTest
       setup do
         @user = users(:seller_one)
         login_as(@user)
       end
 
-      test "GET /books/scans/confirmation directly renders full page with layout" do
-        get books_scans_confirmation_path, params: { title: "Test Book", author: "Test Author" }
+      test "GET /books/new/confirmation directly renders full page with layout" do
+        get new_confirmation_path, params: { title: "Test Book", author: "Test Author" }
         assert_response :success
 
         # Should have full HTML document with head (CSS/JS loaded)
@@ -25,10 +25,10 @@ module Books
         assert_select "form"
       end
 
-      test "GET /books/scans/confirmation without Stripe account shows payment setup prompt" do
+      test "GET /books/new/confirmation without Stripe account shows payment setup prompt" do
         @user.update!(stripe_account_id: nil)
 
-        get books_scans_confirmation_path, params: { title: "Test Book", author: "Test Author" }
+        get new_confirmation_path, params: { title: "Test Book", author: "Test Author" }
         assert_response :success
 
         assert_select "p", text: /Before you can list books for sale/i

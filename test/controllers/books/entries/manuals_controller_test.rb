@@ -1,15 +1,15 @@
 require "test_helper"
 
 module Books
-  module Scans
+  module Entries
     class ManualsControllerTest < ActionDispatch::IntegrationTest
       setup do
         @user = users(:seller_one)
         login_as(@user)
       end
 
-      test "GET /books/scans/manual directly renders full page with layout" do
-        get books_scans_manual_path
+      test "GET /books/new/manual directly renders full page with layout" do
+        get new_manual_path
         assert_response :success
 
         # Should have full HTML document with head (CSS/JS loaded)
@@ -25,10 +25,10 @@ module Books
         assert_select "form"
       end
 
-      test "GET /books/scans/manual without Stripe account shows payment setup prompt" do
+      test "GET /books/new/manual without Stripe account shows payment setup prompt" do
         @user.update!(stripe_account_id: nil)
 
-        get books_scans_manual_path
+        get new_manual_path
         assert_response :success
 
         assert_select "p", text: /Before you can list books for sale/i

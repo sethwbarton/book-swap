@@ -11,24 +11,27 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
     follow_redirect! if response.redirect?
   end
 
-  test "GET /books/new renders the new book form" do
+  test "GET /books/new renders method selection page" do
     get new_book_path
     assert_response :success
 
-    assert_select "h1", text: "Add a New Book"
-    assert_select "form[action='#{books_path}'][method='post']"
-    assert_select "input[name='book[title]']"
-    assert_select "input[name='book[author]']"
-    assert_select "input[type='submit'][value='Create Book']"
+    assert_select "h1", text: "Add a Book"
+    # Should show method selection options as links
+    assert_select "a[href='#{new_barcode_path}']", text: /Scan Barcode/
+    assert_select "a[href='#{new_photo_path}']", text: /Take Photo/
+    assert_select "a[href='#{new_manual_path}']", text: /Enter book details manually/
   end
 
-  test "POST /books with invalid data re-renders form with errors" do
+  test "POST /books with invalid data re-renders manual form with errors" do
     post books_path, params: { book: { title: "", author: "" } }
     assert_response :unprocessable_entity
 
-    assert_select "h2", /prohibited this book from being saved/i
+    # Should show the manual form with errors
+    assert_select "h3", /prohibited this book from being saved/i
     assert_select "li", text: "Title can't be blank"
     assert_select "li", text: "Author can't be blank"
+    # Form should still be present
+    assert_select "form[action='#{books_path}'][method='post']"
   end
 
   test "POST /books with valid data associates the book with the user" do
@@ -76,15 +79,15 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
     assert_not_select "p", text: "Book"
   end
 
-  test "GET /books/new without Stripe account does not show book form" do
+  test "GET /books/new without Stripe account does not show method selection" do
     @user.update!(stripe_account_id: nil) # Override fixture
 
     get new_book_path
     assert_response :success
 
-    # Form should NOT be present
-    assert_select "form[action='#{books_path}'][method='post']", count: 0
-    assert_select "input[name='book[title]']", count: 0
+    # Method selection should NOT be present
+    assert_select "a[href='#{new_barcode_path}']", count: 0
+    assert_select "a[href='#{new_photo_path}']", count: 0
   end
 
   test "GET /books/new without Stripe account shows payment setup prompt" do

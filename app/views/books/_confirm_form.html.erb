@@ -1,7 +1,7 @@
 <%# Step: Confirm & Price %>
 <div class="mb-4 flex justify-between items-center">
   <h2 class="text-xl font-semibold">Confirm Book Details</h2>
-  <%= link_to books_scans_path,
+  <%= link_to new_book_path,
               data: { turbo_frame: "scan_step", turbo_action: "advance" },
               class: "text-gray-600 hover:text-gray-800" do %>
     &larr; Start Over

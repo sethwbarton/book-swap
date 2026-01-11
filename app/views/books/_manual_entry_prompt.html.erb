@@ -1,8 +1,8 @@
 <div class="text-center">
   <%= link_to "Enter book details manually",
-              books_scans_manual_path,
+              new_manual_path,
               data: { turbo_frame: "scan_step", turbo_action: "advance" },
               class: "text-blue-600 hover:text-blue-800 underline" %>
   <p>OR</p>
-  <%= render partial: "books/scans/isbn_entry_form" %>
+  <%= render partial: "books/isbn_entry_form" %>
 </div>
