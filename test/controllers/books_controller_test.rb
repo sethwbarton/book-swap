@@ -114,34 +114,6 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
     assert_equal 0, Book.where(title: "Foo").count
   end
 
-  # Scan action tests
-  test "GET /books/scan renders the scanning interface" do
-    get scan_books_path
-    assert_response :success
-
-    assert_select "h1", text: "Add a Book"
-    # Should show method selection options as links (inside turbo-frame)
-    assert_select "a[href='#{scan_barcode_books_path}']", text: /Scan Barcode/
-    assert_select "a[href='#{scan_photo_books_path}']", text: /Take Photo/
-  end
-
-  test "GET /books/scan renders a way to enter the ISBN manually" do
-    get scan_books_path
-    assert_response :success
-
-    assert_select "label", text: "ISBN"
-    assert_select "input[type='submit'][value='Get Details for ISBN Manually']", count: 1
-  end
-
-  test "GET /books/scan without Stripe account shows payment setup prompt" do
-    @user.update!(stripe_account_id: nil)
-
-    get scan_books_path
-    assert_response :success
-
-    assert_select "p", text: /Before you can list books for sale/i
-  end
-
   test "POST /books with scanned book data creates book with all fields" do
     post books_path, params: {
       book: {
@@ -169,74 +141,5 @@ class BooksControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Harper Perennial", book.publisher
     assert_equal 2006, book.publication_year
     assert_equal "isbn", book.identified_by
-  end
-
-  # Direct page visit tests - these URLs should work when refreshed or visited directly
-  test "GET /books/scan/barcode directly renders full page with layout" do
-    get scan_barcode_books_path
-    assert_response :success
-
-    # Should have full HTML document with head (CSS/JS loaded)
-    assert_select "html"
-    assert_select "head link[rel='stylesheet']"
-    assert_select "body"
-
-    # Should have the page title
-    assert_select "h1", text: "Add a Book"
-
-    # Should have the turbo frame with barcode scanner content
-    assert_select "turbo-frame#scan_step"
-    assert_select "[data-controller='barcode-scanner']"
-  end
-
-  test "GET /books/scan/photo directly renders full page with layout" do
-    get scan_photo_books_path
-    assert_response :success
-
-    # Should have full HTML document with head (CSS/JS loaded)
-    assert_select "html"
-    assert_select "head link[rel='stylesheet']"
-    assert_select "body"
-
-    # Should have the page title
-    assert_select "h1", text: "Add a Book"
-
-    # Should have the turbo frame with photo capture content
-    assert_select "turbo-frame#scan_step"
-    assert_select "[data-controller='book-photo']"
-  end
-
-  test "GET /books/scan/manual directly renders full page with layout" do
-    get scan_manual_books_path
-    assert_response :success
-
-    # Should have full HTML document with head (CSS/JS loaded)
-    assert_select "html"
-    assert_select "head link[rel='stylesheet']"
-    assert_select "body"
-
-    # Should have the page title
-    assert_select "h1", text: "Add a Book"
-
-    # Should have the turbo frame with manual form content
-    assert_select "turbo-frame#scan_step"
-    assert_select "form"
-  end
-
-  test "GET /books/scan/confirm directly renders full page with layout" do
-    get scan_confirm_books_path, params: { title: "Test Book", author: "Test Author" }
-    assert_response :success
-
-    # Should have full HTML document with head (CSS/JS loaded)
-    assert_select "html"
-    assert_select "head link[rel='stylesheet']"
-    assert_select "body"
-
-    # Should have the page title
-    assert_select "h1", text: "Add a Book"
-
-    # Should have the turbo frame with confirm form content
-    assert_select "turbo-frame#scan_step"
-    assert_select "form"
   end
 end

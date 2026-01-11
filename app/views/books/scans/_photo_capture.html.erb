@@ -1,7 +1,7 @@
 <%# Step: Photo Capture %>
 <div class="mb-4 flex justify-between items-center">
   <h2 class="text-xl font-semibold">Take a Photo</h2>
-  <%= link_to scan_books_path,
+  <%= link_to books_scans_path,
               data: { turbo_frame: "scan_step", turbo_action: "advance" },
               class: "text-gray-600 hover:text-gray-800" do %>
     &larr; Back
@@ -11,8 +11,8 @@
 <div data-controller="book-photo"
      data-book-photo-mode-value="identify"
      data-book-photo-upload-url-value="<%= book_lookups_image_path %>"
-     data-book-photo-confirm-url-value="<%= scan_confirm_books_path %>"
-     data-book-photo-manual-url-value="<%= scan_manual_books_path %>">
+     data-book-photo-confirm-url-value="<%= books_scans_confirmation_path %>"
+     data-book-photo-manual-url-value="<%= books_scans_manual_path %>">
 
   <video data-book-photo-target="video"
          autoplay
@@ -52,5 +52,5 @@
     Take a clear photo of the book's cover or title page. Good lighting helps!
   </p>
 
-  <%= render partial: 'books/scan/manual_entry_prompt' %>
+  <%= render partial: 'books/scans/manual_entry_prompt' %>
 </div>

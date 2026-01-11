@@ -23,7 +23,7 @@ class BookLookupsController < ApplicationController
 
       render turbo_stream: turbo_stream.replace(
         "scan_step",
-        partial: "books/scan/confirm_form",
+        partial: "books/scans/confirm_form",
         locals: { book: book, duplicate: duplicate }
       )
     else

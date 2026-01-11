@@ -1,5 +1,7 @@
 class BooksController < ApplicationController
-  before_action :require_stripe_connection, only: [ :new, :create, :scan, :scan_barcode, :scan_photo, :scan_manual, :scan_confirm ]
+  include RequiresStripeConnection
+
+  skip_before_action :check_stripe_connection, only: [ :index, :show ]
 
   def index
     @books = Book.available
@@ -9,32 +11,16 @@ class BooksController < ApplicationController
     @book = Book.new
   end
 
-  def scan
-    @book = Book.new
-  end
-
-  def scan_barcode
-    @book = Book.new
-  end
-
-  def scan_photo
-    @book = Book.new
-  end
-
-  def scan_manual
-    @book = Book.new
-  end
-
-  def scan_confirm
-    @book = Book.new(book_params_from_lookup)
-    @duplicate = Current.user.books.exists?(isbn_13: @book.isbn_13) if @book.isbn_13.present?
-  end
-
   def show
     @book = Book.find(params[:id])
   end
 
   def create
+    unless @stripe_connected
+      redirect_to new_book_path
+      return
+    end
+
     @book = Book.new(book_params)
     @book.user = Current.user
 
@@ -62,29 +48,5 @@ class BooksController < ApplicationController
       :identified_by,
       condition_photos: []
     )
-  end
-
-  def book_params_from_lookup
-    params.permit(
-      :title,
-      :author,
-      :isbn_10,
-      :isbn_13,
-      :description,
-      :cover_image_url,
-      :publisher,
-      :publication_year,
-      :page_count,
-      :identified_by
-    )
-  end
-
-  def require_stripe_connection
-    unless Current.user.stripe_account_id.present?
-      redirect_to new_book_path if action_name == "create"
-      @stripe_connected = false
-      return
-    end
-    @stripe_connected = true
   end
 end

@@ -214,6 +214,16 @@ test/
 - **Forms:** Use Turbo by default; add `data: { turbo: false }` to disable
 - **Current user:** Access via `Current.user` (ActiveSupport::CurrentAttributes)
 
+### Rails Conventions First
+
+This codebase prioritizes idiomatic Rails patterns over custom solutions. When faced with architectural decisions:
+
+- **Prefer built-in Rails features** over gems or custom implementations
+- **Use concerns** for shared controller/model logic instead of inheritance hierarchies
+- **Use namespaced controllers** for related functionality (e.g., `Books::ScansController` instead of adding actions to `BooksController`)
+- **Follow RESTful conventions** - prefer standard CRUD actions over custom actions when possible
+- **Use Rails routing DSL** - `namespace`, `resource`, `resources` over manual route definitions
+
 ### Icons (Heroicons)
 
 Use the `heroicon` gem for all icons. Do NOT use inline SVGs.

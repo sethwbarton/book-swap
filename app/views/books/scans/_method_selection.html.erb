@@ -4,7 +4,7 @@
 
   <div class="grid gap-4 md:grid-cols-2">
     <%# Barcode Scanner Option %>
-    <%= link_to scan_barcode_books_path,
+    <%= link_to books_scans_barcode_path,
                 data: { turbo_frame: "scan_step", turbo_action: "advance" },
                 class: "flex flex-col items-center p-6 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors" do %>
       <%= heroicon "qr-code", options: { class: "w-12 h-12 text-gray-600 mb-3" } %>
@@ -13,7 +13,7 @@
     <% end %>
 
     <%# Photo Option %>
-    <%= link_to scan_photo_books_path,
+    <%= link_to books_scans_photo_path,
                 data: { turbo_frame: "scan_step", turbo_action: "advance" },
                 class: "flex flex-col items-center p-6 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors" do %>
       <%= heroicon "camera", options: { class: "w-12 h-12 text-gray-600 mb-3" } %>
@@ -22,5 +22,5 @@
     <% end %>
   </div>
 
-  <%= render partial: "books/scan/manual_entry_prompt" %>
+  <%= render partial: "books/scans/manual_entry_prompt" %>
 </div>
