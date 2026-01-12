@@ -96,7 +96,7 @@ export default class extends Controller {
     this.Quagga.init(config, (err) => {
       if (err) {
         console.error("Quagga init error:", err)
-        this.showError("Could not access camera. Please ensure camera permissions are granted.")
+        this.showError(this.getCameraErrorMessage(err))
         return
       }
 
@@ -221,5 +221,40 @@ export default class extends Controller {
   getMetaCsrfToken() {
     const meta = document.querySelector('meta[name="csrf-token"]')
     return meta ? meta.getAttribute("content") : ""
+  }
+
+  getCameraErrorMessage(err) {
+    // Check if the page is served over HTTP (not HTTPS)
+    // Browsers require HTTPS for camera access (except localhost)
+    const isSecureContext = window.isSecureContext
+    const isLocalhost = window.location.hostname === "localhost" || 
+                        window.location.hostname === "127.0.0.1"
+
+    if (!isSecureContext && !isLocalhost) {
+      return "Camera access requires a secure connection (HTTPS). " +
+             "Please access this page via HTTPS or use localhost for development."
+    }
+
+    // Check for specific error types
+    const errorName = err?.name || err?.message || String(err)
+
+    if (errorName.includes("NotAllowedError") || errorName.includes("PermissionDenied")) {
+      return "Camera permission was denied. Please allow camera access in your browser settings and refresh the page."
+    }
+
+    if (errorName.includes("NotFoundError") || errorName.includes("DevicesNotFound")) {
+      return "No camera found on this device."
+    }
+
+    if (errorName.includes("NotReadableError") || errorName.includes("TrackStartError")) {
+      return "Camera is in use by another application. Please close other apps using the camera and try again."
+    }
+
+    if (errorName.includes("OverconstrainedError")) {
+      return "Camera does not support the required settings. Please try a different device."
+    }
+
+    // Default message
+    return "Could not access camera. Please ensure camera permissions are granted."
   }
 }

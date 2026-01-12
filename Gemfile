@@ -68,6 +68,9 @@ end
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
+
+  # QR code generation for ngrok tunnel URL
+  gem "rqrcode"
 end
 
 group :test do

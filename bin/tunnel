@@ -1,0 +1,72 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Start ngrok tunnel and display QR code for mobile access
+# Usage: bin/tunnel [port]
+
+require "bundler/setup"
+require "net/http"
+require "json"
+require "rqrcode"
+
+# Ensure output is not buffered (important for foreman)
+$stdout.sync = true
+$stderr.sync = true
+
+PORT = ARGV[0] || "3000"
+NGROK_API = "http://127.0.0.1:4040/api/tunnels"
+MAX_RETRIES = 30
+
+def fetch_tunnel_url
+  uri = URI(NGROK_API)
+  response = Net::HTTP.get(uri)
+  data = JSON.parse(response)
+
+  # Find the https tunnel
+  tunnel = data["tunnels"].find { |t| t["proto"] == "https" }
+  tunnel&.dig("public_url")
+rescue Errno::ECONNREFUSED, JSON::ParserError
+  nil
+end
+
+def display_qr_code(url)
+  qr = RQRCode::QRCode.new(url)
+
+  puts ""
+  puts qr.as_ansi(
+    light: "\e[47m", dark: "\e[40m",
+    fill_character: "  ",
+    quiet_zone_size: 2
+  )
+  puts ""
+  puts "  Scan QR code or visit:"
+  puts "  \e[1;36m#{url}\e[0m"
+  puts ""
+end
+
+# Start ngrok in the background
+puts "Starting ngrok tunnel to port #{PORT}..."
+ngrok_pid = spawn("ngrok", "http", PORT, "--log=stdout", "--log-level=warn",
+                  out: "/dev/null", err: "/dev/null")
+
+# Wait for ngrok to start and get the URL
+url = nil
+MAX_RETRIES.times do |i|
+  sleep 0.5
+  url = fetch_tunnel_url
+  break if url
+  print "." if i > 2
+end
+
+if url
+  display_qr_code(url)
+
+  # Keep the process running until interrupted
+  Process.wait(ngrok_pid)
+else
+  puts ""
+  puts "Failed to get tunnel URL from ngrok. Is ngrok authenticated?"
+  puts "Run: ngrok config add-authtoken <your-token>"
+  Process.kill("TERM", ngrok_pid) rescue nil
+  exit 1
+end
