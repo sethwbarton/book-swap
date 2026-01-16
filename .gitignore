@@ -37,3 +37,7 @@
 !/app/assets/builds/.keep
 
 /config/credentials/development.key
+
+# Ignore GCP service account key files
+kamal-deployer-key.json
+*.json.key

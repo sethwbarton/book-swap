@@ -1,13 +1,13 @@
 # Name of your application. Used to uniquely configure containers.
 service: book_swap
 
-# Name of the container image.
-image: your-user/book_swap
+# Name of the container image (Google Cloud Artifact Registry).
+image: docker-images-484521/book-swap/book_swap
 
 # Deploy to these servers.
 servers:
   web:
-    - 192.168.0.1
+    - 5.78.125.193
   # job:
   #   hosts:
   #     - 192.168.0.1
@@ -19,15 +19,14 @@ servers:
 # Note: If using Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
 proxy:
   ssl: true
-  host: app.example.com
+  host: bookswap.sethwbarton.com
 
-# Credentials for your image host.
+# Credentials for your image host (Google Cloud Artifact Registry).
 registry:
-  # Specify the registry server, if you're not using Docker Hub
-  # server: registry.digitalocean.com / ghcr.io / ...
-  username: your-user
+  server: us-central1-docker.pkg.dev
+  username: _json_key_base64
 
-  # Always use an access token rather than real password when possible.
+  # Base64-encoded service account JSON key (set in .kamal/secrets)
   password:
     - KAMAL_REGISTRY_PASSWORD
 
